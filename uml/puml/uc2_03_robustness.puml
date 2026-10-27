@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-03 パーツ追加 ロバストネス図
+actor "管理者" as A
+boundary "管理画面\nAdminScreen" as AS
+control "カタログ管理制御\nCatalogManager" as CM
+entity "カタログ\nCatalog" as CA
+entity "部位\nPartSlot" as PS
+entity "パーツ\nPart" as PT
+entity "制約ルール\nConstraint" as CN
+control "描画制御\nRenderer" as RD
+A -- AS : 1 定義ファイルを指定／5 確定
+AS --> CM : 1 読込要求／5 確定
+CM --> CA : 2 対象車両を検索／3 参照先確認／6 登録
+CM --> PS : 1a 部位を作成
+CM --> PT : 3 パーツを生成
+CM --> CN : 3 制約を生成
+CM --> RD : 4 プレビュー描画
+RD --> AS : 4 プレビュー表示
+CM --> AS : 2a,3a エラー表示／7 結果表示
+@enduml

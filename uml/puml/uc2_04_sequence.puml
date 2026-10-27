@@ -1,0 +1,46 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+hide footbox
+title 2-04 組み合わせ制約 シーケンス図
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "カスタム制御\nCustomizeController" as CU
+control "制約判定\nConstraintChecker" as CC
+entity "仕様\nBuildSpec" as SP
+entity "ベース車両\nBaseVehicle" as VH
+entity "制約ルール\nConstraint" as CN
+[-> CU : changePart(slotId, partId)\n(2-05から)
+activate CU
+CU -> CC : check(spec, slotId, partId)
+activate CC
+CC -> SP : withPart(slotId, partId)
+SP --> CC : candidate
+CC -> VH : getConstraints()
+VH --> CC : constraints
+loop 各ルール
+  CC -> CN : isViolatedBy(candidate)
+  CN --> CC : 結果
+end
+alt 違反なし
+  CC --> CU : CheckResult(ok, candidate)
+else 自動解決できる違反
+  CC -> SP : withPart(targetSlotId, null)
+  SP --> CC : adjusted
+  CC --> CU : CheckResult(ok, adjusted, message)
+else 自動解決できない違反
+  CC --> CU : CheckResult(ng, message)
+end
+deactivate CC
+CU -> CC : getDisabledOptions(newSpec)
+activate CC
+CC --> CU : options
+deactivate CC
+CU -> CS : disableOptions(options)
+deactivate CU
+@enduml

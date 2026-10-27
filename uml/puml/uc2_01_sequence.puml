@@ -1,0 +1,57 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+hide footbox
+title 2-01 車両ベース選択 シーケンス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "ベース選択制御\nVehicleSelector" as VS
+control "履歴管理\nHistoryManager" as HM
+control "描画制御\nRenderer" as RD
+boundary "車両ビュー\nBikeView" as BV
+entity "カタログ\nCatalog" as CA
+entity "ベース車両\nBaseVehicle" as VH
+entity "作業状態\nWorkspace" as WS
+entity "パーツ\nPart" as PT
+U -> CS : 画面を開く
+activate CS
+CS -> VS : listVehicles()
+activate VS
+VS -> CA : getVehicles()
+CA --> VS : vehicles
+VS --> CS : vehicles
+deactivate VS
+CS -> CS : showBaseList(vehicles)
+U -> CS : 車両を選ぶ
+opt 未保存の変更がある
+  CS -> CS : confirmDiscard()
+end
+CS -> VS : selectVehicle(id)
+activate VS
+VS -> CA : findVehicle(id)
+CA --> VS : vehicle
+VS -> VH : getDefaultSpec()
+VH --> VS : spec
+VS -> WS : setCurrent(spec.clone())
+VS -> HM : clear()
+VS -> RD : render()
+activate RD
+RD -> WS : getCurrent()
+WS --> RD : spec
+loop 各部位
+  RD -> PT : getSvgTemplate()
+  PT --> RD : template
+end
+RD -> BV : display(svg)
+deactivate RD
+VS --> CS : vehicle
+deactivate VS
+CS -> CS : buildShelf(vehicle.slots)
+deactivate CS
+@enduml

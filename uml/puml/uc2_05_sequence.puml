@@ -1,0 +1,49 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+hide footbox
+title 2-05 パーツ・塗装選択 シーケンス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+boundary "車両ビュー\nBikeView" as BV
+control "カスタム制御\nCustomizeController" as CU
+control "制約判定\nConstraintChecker" as CC
+control "履歴管理\nHistoryManager" as HM
+control "描画制御\nRenderer" as RD
+entity "作業状態\nWorkspace" as WS
+entity "変更履歴\nEditCommand" as EC
+entity "仕様\nBuildSpec" as SP
+U -> CS : パーツを選ぶ
+activate CS
+CS -> CU : changePart(slotId, partId)
+activate CU
+CU -> WS : getCurrent()
+WS --> CU : before
+CU -> CC : check(before, slotId, partId)
+ref over CC : 2-04 組み合わせ制約
+CC --> CU : CheckResult
+alt 違反あり(ng)
+  CU -> CS : showMessage(reason)
+else 許可(ok)
+  create EC
+  CU -> EC : new EditCommand(before, after)
+  CU -> HM : push(cmd)
+  CU -> WS : setCurrent(after)
+  CU -> RD : render()
+  activate RD
+  RD -> BV : display(svg)
+  deactivate RD
+  CU -> SP : calcSpecs()
+  SP --> CU : specs
+  CU -> CS : updateSheet(specs)
+  CU -> CS : updateButtons(canUndo, canRedo)
+end
+deactivate CU
+deactivate CS
+@enduml

@@ -1,0 +1,697 @@
+<title>2Dカスタムガレージ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 左にサイドビューの作業台（スティッキー）とビルドシート、右にパーツ棚。スマホでは作業台を上に固定し、棚→シートの順に積む */
+:root{
+  --bg:#e7eaee; --panel:#f8f9fa; --ink:#16181c; --muted:#5b626d; --line:#cdd3da;
+  --accent:#1e4fd0; --accent-ink:#ffffff; --stage:#dde2e8; --grid:rgba(30,79,208,.09);
+  --shadow:rgba(10,14,22,.22); --flash:rgba(30,79,208,.14);
+  --f-display:"Dela Gothic One","Hiragino Kaku Gothic StdN","Yu Gothic",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101217; --panel:#191c22; --ink:#e7e9ed; --muted:#9aa1ac; --line:#2b3039;
+  --accent:#7f9dff; --accent-ink:#0d1020; --stage:#242831; --grid:rgba(127,157,255,.08);
+  --shadow:rgba(0,0,0,.5); --flash:rgba(127,157,255,.16); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101217; --panel:#191c22; --ink:#e7e9ed; --muted:#9aa1ac; --line:#2b3039;
+  --accent:#7f9dff; --accent-ink:#0d1020; --stage:#242831; --grid:rgba(127,157,255,.08);
+  --shadow:rgba(0,0,0,.5); --flash:rgba(127,157,255,.16); color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(22px,3.4vw,32px);line-height:1.1;margin:0;letter-spacing:.02em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;font-size:13px}
+.hdr-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line);background:var(--panel);padding:7px 14px;border-radius:6px;font-size:13px;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+.main{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:22px;align-items:start}
+.left{position:sticky;top:max(12px,env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:16px}
+
+.stage{position:relative;background-color:var(--stage);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;border-radius:10px;border:1px solid var(--line);overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.stage svg [data-part]{cursor:pointer}
+.style-tag{position:absolute;left:14px;top:12px;display:flex;flex-direction:column;pointer-events:none}
+.style-tag small{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.style-tag b{font-family:var(--f-display);font-weight:400;font-size:clamp(16px,2.4vw,24px);line-height:1.2}
+.hint{position:absolute;right:12px;top:12px;font-size:11px;color:var(--muted);pointer-events:none}
+
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.sheet h2{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.sheet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0 22px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.row span:first-child{color:var(--muted);white-space:nowrap}
+.row span:last-child{font-weight:500;text-align:right;display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;border:1px solid rgba(127,127,127,.5);display:inline-block;flex:none}
+.specs{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;align-items:flex-end}
+.spec{display:flex;flex-direction:column}
+.spec small{font-size:11px;color:var(--muted)}
+.spec b{font-family:var(--f-mono);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.spec-note{font-size:11px;color:var(--muted)}
+
+.shelf{display:flex;flex-direction:column;gap:12px}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;transition:background-color .4s}
+.sec.flash{background:var(--flash)}
+.sec h3{margin:0 0 8px;font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec h3 em{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--muted);font-weight:400}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);padding:0}
+.sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--panel) inset}
+.custom{position:relative;width:30px;height:30px;border-radius:50%;border:2px dashed var(--line);overflow:hidden;display:inline-flex}
+.custom input{position:absolute;inset:-6px;width:42px;height:42px;opacity:0;cursor:pointer}
+.custom span{margin:auto;font-size:15px;color:var(--muted);pointer-events:none}
+.label-sm{font-size:12px;color:var(--muted);margin:12px 0 6px}
+.label-sm:first-of-type{margin-top:0}
+.note{font-size:12px;color:var(--muted);margin:8px 0 0}
+.inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.num{width:72px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:transparent;font-family:var(--f-mono);font-size:14px}
+.range{display:flex;align-items:center;gap:12px}
+.range input{flex:1;accent-color:var(--accent)}
+.range output{font-family:var(--f-mono);font-variant-numeric:tabular-nums;min-width:62px;text-align:right}
+
+.saves{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.save{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.save button.load{flex:1;text-align:left;background:none;border:0;padding:2px;display:flex;align-items:center;gap:8px;min-width:0}
+.save .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.save .st{font-size:11px;color:var(--muted);white-space:nowrap}
+.save .del{background:none;border:0;color:var(--muted);font-size:16px;padding:0 6px}
+.empty{font-size:12px;color:var(--muted);margin:8px 0 0}
+
+@media (max-width:900px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .left{display:contents}
+  .stage{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;box-shadow:0 6px 16px -10px var(--shadow)}
+  .shelf{order:2}.sheet{order:3}
+  .hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){.sec{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>2Dカスタムガレージ</h1>
+      <p class="sub">ベース車両を選んで、外装・足まわり・塗装を組み替えられます。車体のパーツをクリックすると、その棚に移動します。</p>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn" id="btn-random" type="button">おまかせ組み</button>
+      <button class="btn" id="btn-reset" type="button">ノーマルに戻す</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="left">
+      <div class="stage">
+        <div class="style-tag"><small>Style</small><b id="style-name">スーパースポーツ</b></div>
+        <div class="hint">パーツをクリックで編集</div>
+        <svg id="bike" viewBox="0 0 800 440" role="img" aria-label="カスタムしたスーパースポーツのサイドビュー"></svg>
+      </div>
+      <section class="sheet" aria-label="ビルドシート">
+        <h2>Build sheet</h2>
+        <div class="sheet-grid" id="sheet"></div>
+        <div class="specs" id="specs"></div>
+      </section>
+    </div>
+    <div class="shelf" id="shelf"></div>
+  </div>
+</div>
+
+<script>
+/* ================= shared drawing helpers ================= */
+const CHROME='#b4bbc3',CHROME_HI='#eef1f4',TIRE='#151515',DARK='#2b2d31';
+const r1=n=>Math.round(n*10)/10, rad=d=>d*Math.PI/180;
+const pol=(c,r,a)=>({x:c.x+r*Math.cos(rad(a)),y:c.y+r*Math.sin(rad(a))});
+const lerp=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+const pt=p=>`${r1(p.x)} ${r1(p.y)}`;
+function arc(c,r,a1,a2){return `M${pt(pol(c,r,a1))} A${r} ${r} 0 ${Math.abs(a2-a1)>180?1:0} ${a2>a1?1:0} ${pt(pol(c,r,a2))}`}
+function band(c,ro,ri,a1,a2){const L=Math.abs(a2-a1)>180?1:0,sw=a2>a1?1:0;
+ return `M${pt(pol(c,ro,a1))} A${ro} ${ro} 0 ${L} ${sw} ${pt(pol(c,ro,a2))} L${pt(pol(c,ri,a2))} A${ri} ${ri} 0 ${L} ${1-sw} ${pt(pol(c,ri,a1))} Z`}
+const line=(x1,y1,x2,y2,c,w,extra='')=>`<line x1="${r1(x1)}" y1="${r1(y1)}" x2="${r1(x2)}" y2="${r1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
+const pipe=(d,w)=>`<path d="${d}" fill="none" stroke="${CHROME}" stroke-width="${w}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${CHROME_HI}" stroke-width="${Math.max(1.5,w*.25)}" stroke-linecap="round" transform="translate(0 -${r1(w*.2)})"/>`;
+const poly=(pts,fill)=>`<polygon points="${pts.map(p=>`${r1(p.x)},${r1(p.y)}`).join(' ')}" fill="${fill}"/>`;
+function ground(RA,FA,wb){
+ return `<ellipse cx="${(RA.x+FA.x)/2}" cy="400" rx="${(FA.x-RA.x)/2+110}" ry="7" style="fill:var(--shadow)"/>`+
+ `<g style="stroke:var(--muted)" stroke-width="1"><line x1="${RA.x}" y1="424" x2="${FA.x}" y2="424"/><line x1="${RA.x}" y1="416" x2="${RA.x}" y2="432"/><line x1="${FA.x}" y1="416" x2="${FA.x}" y2="432"/></g>`+
+ `<text x="${(RA.x+FA.x)/2}" y="418" text-anchor="middle" style="fill:var(--muted);font:500 11px var(--f-mono)">WHEELBASE ${wb} mm</text>`;
+}
+function swingarm(piv,RA,color,wA,wB){const ang=Math.atan2(RA.y-piv.y,RA.x-piv.x)*180/Math.PI;
+ return `<g data-part="frame">${poly([pol(piv,wA,ang-90),pol(RA,wB,ang-90),pol(RA,wB,ang+90),pol(piv,wA,ang+90)],color)}<circle cx="${piv.x}" cy="${piv.y}" r="7" fill="#7d838b"/><circle cx="${RA.x}" cy="${RA.y}" r="9" fill="#5b6067"/></g>`}
+
+let S; // current base's state (set at boot)
+
+/* ================= SUPERSPORT ================= */
+const SS_PAINT=[['#c4161c','キャンディレッド'],['#e9ecef','パールホワイト'],['#25262a','マットブラック'],['#4d5560','ガンメタ'],['#1d2f6b','ミッドナイトブルー'],['#0f6e6c','ディープティール'],['#e2611b','ブレイズオレンジ'],['#b8bec6','シルバー']];
+const SS={
+ label:'スーパースポーツ',wheelbase:'1,370',lowerMax:20,
+ aria:'カスタムしたスーパースポーツのサイドビュー',
+ PARTS:{
+  cowl:['カウル',[['full','フルカウル'],['half','ハーフカウル'],['naked','ネイキッド化']]],
+  screen:['スクリーン',[['low','ロー'],['std','スタンダード'],['tall','ロング']]],
+  light:['ヘッドライト',[['slit','シャープ2眼'],['round','丸目LED'],['square','角目LED']]],
+  livery:['グラフィック',[['solid','ソリッド'],['twotone','2トーン'],['stripe','ストライプ'],['racing','レーシング']]],
+  bar:['ハンドル',[['clip','セパハン'],['bar','バーハンドル']]],
+  mirror:['ミラー',[['stock','ノーマル'],['barend','バーエンド'],['none','なし（サーキット）']]],
+  exhaust:['マフラー',[['stock','ノーマル'],['slipon','スリップオン（チタン）'],['short','ショートサイレンサー'],['centerup','センターアップ']]],
+  tail:['テール',[['stock','ノーマル'],['fenderless','フェンダーレス']]],
+  seat:['シート',[['tandem','タンデム'],['single','シングルシートカウル']]],
+  wheel:['ホイール',[['y5','5本Yスポーク'],['ten','10本スポーク'],['forged','鍛造7本']]],
+ },
+ SW:{
+  main:SS_PAINT, sub:SS_PAINT,
+  accent:[['#f2f2f2','ホワイト'],['#111111','ブラック'],['#c79a2b','ゴールド'],['#e2611b','オレンジ'],['#c4161c','レッド'],['#33c3d6','シアン']],
+  frameColor:[['#1c1c1e','ブラック'],['#b8bec6','アルミシルバー'],['#4d5560','ガンメタ'],['#a3121c','レッド']],
+  seatColor:[['#1b1b1d','ブラック'],['#55585e','グレー'],['#5a3420','ブラウン']],
+  rimColor:[['#1c1c1e','ブラック'],['#c9ced4','シルバー'],['#c79a2b','ゴールド'],['#8a5a2b','ブロンズ'],['#c4161c','レッド']],
+  forkColor:[['#c9a227','ゴールド'],['#8c8fa6','チタン'],['#2b2d31','ブラック'],['#c9ced4','シルバー']],
+  caliperColor:[['#c9a227','ゴールド'],['#c4161c','レッド'],['#2b2d31','ブラック'],['#2a62c9','ブルー']],
+ },
+ COLOR_LABEL:{main:'メインカラー',sub:'サブカラー',accent:'ライン',frameColor:'フレーム',seatColor:'シート表皮',rimColor:'リム',forkColor:'フロントフォーク',caliperColor:'キャリパー'},
+ BOOL:new Set(['rimStripe','zekken']),
+ DEFAULT:{cowl:'full',screen:'std',light:'slit',livery:'twotone',bar:'clip',mirror:'stock',exhaust:'stock',tail:'stock',seat:'tandem',wheel:'y5',
+  main:'#c4161c',sub:'#25262a',accent:'#f2f2f2',frameColor:'#1c1c1e',seatColor:'#1b1b1d',rimColor:'#1c1c1e',forkColor:'#c9a227',caliperColor:'#c9a227',
+  rimStripe:false,zekken:false,number:27,lower:0},
+ PRESETS:[
+  ['ノーマル',{}],
+  ['サーキット仕様',{cowl:'full',screen:'low',light:'slit',livery:'racing',bar:'clip',mirror:'none',exhaust:'short',tail:'fenderless',seat:'single',wheel:'forged',
+   main:'#e9ecef',sub:'#e2611b',accent:'#111111',rimColor:'#1c1c1e',forkColor:'#c9a227',caliperColor:'#c9a227',rimStripe:true,zekken:true,number:27}],
+  ['ストリートファイター',{cowl:'naked',light:'round',livery:'stripe',bar:'bar',mirror:'barend',exhaust:'slipon',tail:'fenderless',wheel:'ten',
+   main:'#25262a',sub:'#4d5560',accent:'#e2611b',rimColor:'#8a5a2b',forkColor:'#2b2d31',caliperColor:'#c4161c',lower:8}],
+  ['スポーツツアラー',{screen:'tall',livery:'twotone',bar:'bar',main:'#1d2f6b',sub:'#b8bec6',accent:'#f2f2f2',rimColor:'#c9ced4',forkColor:'#c9ced4',caliperColor:'#2b2d31'}],
+  ['ナイトシャドウ',{livery:'solid',exhaust:'centerup',tail:'fenderless',seat:'single',main:'#25262a',sub:'#25262a',accent:'#4d5560',forkColor:'#2b2d31',caliperColor:'#2b2d31',rimColor:'#1c1c1e',lower:10}],
+ ],
+ styleName(s){
+  if(s.cowl==='naked')return 'ストリートファイター';
+  if(s.zekken&&s.mirror==='none')return 'サーキット仕様';
+  if(s.screen==='tall'&&s.bar==='bar')return 'スポーツツアラー';
+  if(s.cowl==='half')return 'ハーフカウル スポーツ';
+  return 'スーパースポーツ';
+ },
+ weight(s){let w=166;
+  w+={full:0,half:-2,naked:-5}[s.cowl];w+={stock:0,slipon:-3.2,short:-4,centerup:-1}[s.exhaust];
+  w+=s.tail==='fenderless'?-1.2:0;w+=s.wheel==='forged'?-2.5:0;w+=s.mirror==='none'?-.8:0;w+=s.seat==='single'?.3:0;return w},
+ sheet(s){
+  const rows=['cowl','screen','light','bar','mirror','exhaust','tail','seat','wheel','livery'].map(k=>[this.PARTS[k][0],k==='screen'&&s.cowl==='naked'?'—':optLabel(k,s[k])]);
+  const colors=['main','sub','accent','frameColor','rimColor','forkColor','caliperColor','seatColor'].map(k=>[this.COLOR_LABEL[k],colorName(k,s[k]),s[k]]);
+  colors.push(['ゼッケン',s.zekken?`#${s.number}`:'なし',null]);
+  const specs=[['シート高',`${795-s.lower*2} mm`],['最低地上高',`${148-s.lower*2} mm`],['車両重量',`${this.weight(s).toFixed(1)} kg`]];
+  return {rows,colors,specs};
+ },
+ partMap:{wheel:'sec-wheel',caliper:'sec-fork',fork:'sec-fork',frame:'sec-frameColor',engine:'sec-cowl',exhaust:'sec-exhaust',seat:'sec-seat',paint:'sec-paint',light:'sec-light',bar:'sec-bar',mirror:'sec-mirror',tail:'sec-tail',screen:'sec-screen'},
+ shelf(){
+  let h=partSec('cowl')+partSec('screen',`<p class="note" id="screen-note" hidden>ネイキッド化するとスクリーンは外れます。</p>`)+partSec('light');
+  h+=`<section class="sec" id="sec-paint"><h3>塗装 <em>PAINT</em></h3>
+    <div class="label-sm">グラフィック</div>${chipRow('livery',this.PARTS.livery[1])}
+    <div class="label-sm">メインカラー</div>${swatchRow('main')}
+    <div class="label-sm">サブカラー</div>${swatchRow('sub')}
+    <div class="label-sm">ライン</div>${swatchRow('accent')}
+    <div class="label-sm">ゼッケン</div><div class="inline">${chipRow('zekken',[['on','あり'],['off','なし']])}<input class="num" type="number" id="zekken-num" min="0" max="99" aria-label="ゼッケン番号"></div></section>`;
+  h+=partSec('bar')+partSec('mirror')+partSec('exhaust')+partSec('tail')+partSec('seat');
+  h+=`<section class="sec" id="sec-wheel"><h3>ホイール</h3>${chipRow('wheel',this.PARTS.wheel[1])}<div class="label-sm">リム色</div>${swatchRow('rimColor')}
+    <div class="label-sm">リムストライプ（ライン色）</div>${chipRow('rimStripe',[['on','あり'],['off','なし']])}</section>`;
+  h+=`<section class="sec" id="sec-fork"><h3>足まわり</h3><div class="label-sm">フロントフォーク</div>${swatchRow('forkColor')}<div class="label-sm">ブレーキキャリパー</div>${swatchRow('caliperColor')}</section>`;
+  h+=`<section class="sec" id="sec-frameColor"><h3>フレーム・スイングアーム</h3>${swatchRow('frameColor')}</section>`;
+  h+=`<section class="sec" id="sec-seatColor"><h3>シート表皮</h3>${swatchRow('seatColor')}</section>`;
+  return h;
+ },
+ uiExtra(s){
+  document.querySelectorAll('#sec-screen .chip').forEach(b=>b.disabled=s.cowl==='naked');
+  document.getElementById('screen-note').hidden=s.cowl!=='naked';
+  const zn=document.getElementById('zekken-num');if(document.activeElement!==zn)zn.value=s.number;
+ },
+ randomExtra(s){s.rimStripe=Math.random()<.5;s.zekken=Math.random()<.3;s.number=Math.floor(Math.random()*99)+1},
+ draw(){return drawSS()},
+};
+
+const SS_P={
+ tank:'M384 196 C386 168 420 150 462 144 C488 140 506 144 510 152 L474 196 Z',
+ tail:'M392 210 L302 196 L258 179 C240 172 222 161 204 148 L207 161 C222 183 258 207 304 223 L364 236 Z',
+ single:'M306 198 L258 181 L255 172 C272 160 300 166 306 184 Z',
+ upper:'M498 130 C545 124 592 158 614 192 L602 206 C580 214 560 224 548 240 L528 262 L440 262 L412 232 L388 208 L468 192 L494 152 Z',
+ lower:'M528 262 L502 300 C490 330 465 344 420 342 L368 336 C352 326 354 305 370 295 L398 262 Z',
+ shroud:'M466 196 L516 186 L530 246 L488 258 L458 232 Z',
+ nakedFace:'M534 150 L572 156 L580 192 L546 196 Z',
+};
+const SS_SCREEN={
+ low:'M520 132 C538 118 556 112 576 114 L592 156 C572 146 545 136 520 132 Z',
+ std:'M512 130 C528 110 552 98 572 100 L592 156 C572 146 540 134 512 130 Z',
+ tall:'M506 130 C516 92 544 68 566 68 L592 156 C570 146 538 134 506 130 Z',
+};
+function wheelSS(c,front){
+ let g=`<g data-part="wheel">`;
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="70" fill="none" stroke="${TIRE}" stroke-width="17"/>`;
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="76" fill="none" stroke="#3a3a3a" stroke-width="1.2" stroke-dasharray="4 5"/>`;
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="57.5" fill="none" stroke="${S.rimColor}" stroke-width="5"/>`;
+ if(S.rimStripe)g+=`<circle cx="${c.x}" cy="${c.y}" r="60.6" fill="none" stroke="${S.accent}" stroke-width="1.8"/>`;
+ const rc=S.rimColor;
+ if(S.wheel==='y5'){for(let i=0;i<5;i++){const a=i*72-90+(front?0:20);
+   g+=poly([pol(c,12,a-26),pol(c,32,a-7),pol(c,32,a+7),pol(c,12,a+26)],rc);
+   for(const s of[-1,1])g+=poly([pol(c,30,a+s*2),pol(c,30,a+s*9),pol(c,56,a+s*15),pol(c,56,a+s*8)],rc);}}
+ else if(S.wheel==='ten'){for(let i=0;i<10;i++){const a=i*36-90;g+=poly([pol(c,12,a-10),pol(c,56,a-3.5),pol(c,56,a+3.5),pol(c,12,a+10)],rc)}}
+ else{for(let i=0;i<7;i++){const a=i*(360/7)-90,p=pol(c,12,a),m=pol(c,36,a+14),q=pol(c,56,a+6);
+   g+=`<path d="M${pt(p)} Q${pt(m)} ${pt(q)}" fill="none" stroke="${rc}" stroke-width="5.5" stroke-linecap="round"/>`}}
+ if(front){g+=`<circle cx="${c.x}" cy="${c.y}" r="43" fill="none" stroke="#9aa0a8" stroke-width="9"/>`;
+  for(let i=0;i<16;i++){const p=pol(c,43,i*22.5);g+=`<circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="1.8" fill="#55585d"/>`}
+  const k=pol(c,40,-148);g+=`<rect x="${r1(k.x-9)}" y="${r1(k.y-14)}" width="18" height="28" rx="5" fill="${S.caliperColor}" transform="rotate(-30 ${r1(k.x)} ${r1(k.y)})" data-part="caliper"/>`;}
+ else{g+=`<circle cx="${c.x}" cy="${c.y}" r="27" fill="none" stroke="#9aa0a8" stroke-width="5"/>`;
+  const k=pol(c,26,-70);g+=`<rect x="${r1(k.x-7)}" y="${r1(k.y-10)}" width="14" height="20" rx="4" fill="${S.caliperColor}" transform="rotate(20 ${r1(k.x)} ${r1(k.y)})" data-part="caliper"/>`;}
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="12" fill="#7d838b"/><circle cx="${c.x}" cy="${c.y}" r="4.5" fill="#2d2f33"/></g>`;
+ return g;
+}
+function exhaustSS(){
+ const head=pipe('M478 300 C474 330 446 342 404 340 L360 334',9);
+ switch(S.exhaust){
+  case 'stock':return head+`<path d="M370 318 L290 292 L281 313 L362 342 Z" fill="#2c2e33"/><path d="M290 292 L278 290 L269 311 L281 313 Z" fill="${CHROME}"/><path d="M362 321 L295 299" stroke="#46494f" stroke-width="3"/>`;
+  case 'slipon':return head+`<path d="M356 316 L264 288 C254 286 249 302 257 306 L348 342 Z" fill="#8e93a8"/><path d="M350 320 L266 293" stroke="#c8ccdc" stroke-width="3" stroke-linecap="round"/><path d="M268 289 L262 288 C252 286 247 302 256 306 L262 308 Z" fill="#2a2a2a"/>${line(338,315,330,339,'#6d7186',3)}`;
+  case 'short':return head+`<path d="M392 326 L334 313 L329 338 L387 348 Z" fill="#222326"/><ellipse cx="331" cy="325.5" rx="4" ry="12.5" fill="${CHROME}"/>`;
+  case 'centerup':return pipe('M478 300 C470 332 420 334 392 318 C372 302 352 262 324 242',10)+`<path d="M336 228 L252 200 L246 218 L328 248 Z" fill="#a7adb5"/><path d="M332 233 L254 206" stroke="${CHROME_HI}" stroke-width="2.5"/><ellipse cx="249" cy="209" rx="3.5" ry="9.5" fill="#3a3c40"/>`;
+ }
+}
+function drawSS(){
+ const RA={x:215,y:322},FA={x:590,y:322},dy=S.lower,P=SS_P;
+ const cowled=S.cowl!=='naked';
+ const paintParts=['tank','tail'];
+ if(S.seat==='single')paintParts.push('single');
+ if(cowled)paintParts.push('upper');
+ if(S.cowl==='full')paintParts.push('lower');
+ if(!cowled)paintParts.push('shroud');
+ let o=`<defs><clipPath id="paintClip">${paintParts.map(k=>`<path d="${P[k]}"/>`).join('')}</clipPath></defs>`;
+ o+=ground(RA,FA,SS.wheelbase);
+ o+=wheelSS(RA,false)+wheelSS(FA,true);
+ o+=swingarm({x:352,y:294+dy},RA,S.frameColor,11,7);
+ o+=`<g transform="translate(0 ${dy})">`;
+ o+=`<g data-part="frame" fill="none" stroke="${S.frameColor}" stroke-linejoin="round" stroke-linecap="round">
+   <path d="M396 214 L236 176" stroke-width="7"/><path d="M372 262 L284 200" stroke-width="5"/>
+   <path d="M522 160 L478 210 L400 228 L354 292" stroke-width="20"/>
+   <path d="M519 166 L478 214 L402 232" stroke="rgba(255,255,255,.14)" stroke-width="3"/></g>`;
+ let radi='';for(let y=198;y<256;y+=5)radi+=line(474,y,514,y,'#34373c',1.4);
+ o+=`<g data-part="engine"><rect x="470" y="192" width="48" height="66" rx="3" fill="#1d1f22"/>${radi}
+   <g transform="rotate(24 450 232)"><rect x="416" y="196" width="66" height="54" rx="5" fill="#34373c"/><rect x="420" y="186" width="58" height="14" rx="4" fill="#45494f"/></g>
+   <path d="M370 242 L470 232 C492 248 494 302 470 324 L382 328 C360 316 358 272 370 242 Z" fill="#2a2c30"/>
+   <ellipse cx="412" cy="294" rx="24" ry="16" fill="#3c3f45"/><ellipse cx="412" cy="294" rx="9" ry="6" fill="#55595f"/>
+   <path d="M380 256 C400 250 440 248 462 250" stroke="rgba(255,255,255,.1)" stroke-width="3" fill="none"/></g>`;
+ o+=`<g data-part="exhaust">${exhaustSS()}</g>`;
+ o+=`<g><path d="M336 266 L366 270 L356 304 L332 298 Z" fill="${CHROME}"/><circle cx="346" cy="290" r="5" fill="#222"/>${line(346,290,334,292,'#222',5)}</g>`;
+ o+=`</g>`;
+ o+=`<path data-part="paint" d="${arc(FA,81,-42,-128)}" fill="none" stroke="${S.main}" stroke-width="8"/>`;
+ const T={x:526,y:146+dy},m=lerp(T,FA,.56),b=lerp(T,FA,.86);
+ o+=`<g data-part="fork">${line(T.x,T.y,FA.x,FA.y,CHROME,10)}${line(T.x+2,T.y,FA.x+2,FA.y,CHROME_HI,2)}${line(T.x,T.y,m.x,m.y,S.forkColor,16)}${line(T.x+3,T.y+2,m.x+3,m.y,'rgba(255,255,255,.3)',3)}
+  ${line(b.x,b.y,FA.x,FA.y,DARK,14)}${line(T.x-14,T.y+2,T.x+12,T.y-3,DARK,8)}</g>`;
+ o+=`<g transform="translate(0 ${dy})">`;
+ o+=`<g data-part="bar">`+(S.bar==='clip'
+   ?line(522,162,494,167,DARK,6)+line(494,167,478,170,'#121212',11)+line(502,168,486,179,CHROME,2)
+   :line(526,150,521,124,DARK,6)+line(521,124,489,120,'#3a3d42',6)+line(489,120,474,118,'#121212',11)+line(496,122,480,132,CHROME,2))+`</g>`;
+ o+=`<g data-part="paint">`;
+ for(const k of paintParts)o+=`<path d="${P[k]}" fill="${S.main}"/>`;
+ o+=`<g clip-path="url(#paintClip)">`;
+ if(S.livery==='twotone')o+=`<polygon points="180,246 640,214 640,400 180,400" fill="${S.sub}"/>`+line(180,246,640,214,S.accent,3);
+ if(S.livery==='stripe')o+=line(180,166,640,206,S.sub,13)+line(180,182,640,222,S.accent,4);
+ if(S.livery==='racing')o+=`<polygon points="418,130 486,130 432,280 364,280" fill="${S.sub}"/><polygon points="496,130 514,130 460,280 442,280" fill="${S.accent}"/>
+   <polygon points="560,150 640,150 640,280 520,280" fill="${S.sub}"/><polygon points="262,150 292,150 278,240 246,240" fill="${S.sub}"/>`;
+ o+=`</g>`;
+ if(cowled)o+=`<path d="M452 244 L520 236 L507 256 L446 258 Z" fill="#18191b"/><path d="M430 222 L470 216 L462 228 L436 230 Z" fill="#18191b"/>`;
+ else o+=`<path d="M474 206 L510 199 L520 240 L490 248 Z" fill="none" stroke="#18191b" stroke-width="3"/>`;
+ if(S.zekken){const z=cowled?{x:476,y:220,rx:25,ry:18,f:20}:{x:262,y:198,rx:17,ry:12,f:14};
+   o+=`<ellipse cx="${z.x}" cy="${z.y}" rx="${z.rx}" ry="${z.ry}" fill="#f5f5f2" stroke="#111" stroke-width="1"/><text x="${z.x}" y="${z.y+z.f*.36}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="600" font-size="${z.f}" fill="#111">${S.number}</text>`;}
+ o+=`<path d="M402 176 C420 158 452 150 492 147" stroke="rgba(255,255,255,.32)" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+ if(cowled)o+=`<path d="M512 138 C552 140 584 164 600 184" stroke="rgba(255,255,255,.3)" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+ o+=`</g>`;
+ o+=`<g data-part="seat"><path d="M392 199 C368 190 332 189 302 194 L300 205 L390 210 Z" fill="${S.seatColor}"/>
+   <path d="M386 196 C362 189 334 189 306 193" stroke="rgba(255,255,255,.16)" stroke-width="2" fill="none"/>`;
+ if(S.seat==='tandem')o+=`<path d="M304 196 L258 180 L256 172 L305 187 Z" fill="${S.seatColor}"/>`;
+ o+=`</g>`;
+ o+=`<path d="M204 148 L217 156 L214 163 L207 161 Z" fill="#d1202b"/>`;
+ o+=`<g data-part="tail">`+(S.tail==='stock'
+   ?line(236,182,206,232,DARK,8)+`<rect x="196" y="226" width="6" height="30" rx="1" fill="#e6e6e6" stroke="#888"/>`+line(214,206,198,203,'#f0a020',4)
+   :line(226,172,220,190,DARK,5)+`<rect x="214" y="187" width="5" height="25" rx="1" fill="#e6e6e6" stroke="#888"/>`+line(223,178,210,176,'#f0a020',3.5))+`</g>`;
+ if(cowled)o+=`<g data-part="screen"><path d="${SS_SCREEN[S.screen]}" fill="rgba(38,46,58,.62)"/><path d="${SS_SCREEN[S.screen]}" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5"/></g>`;
+ const lens='#eaf4ff';
+ o+=`<g data-part="light">`;
+ if(cowled){o+=`<path d="M576 180 L612 189 L606 200 L572 191 Z" fill="#111"/>`;
+   if(S.light==='slit')o+=`<path d="M582 183 L606 189 L602 194 L579 188 Z" fill="${lens}"/>`;
+   if(S.light==='round')o+=`<ellipse cx="600" cy="192" rx="3.5" ry="6.5" fill="${lens}"/><ellipse cx="588" cy="188" rx="3" ry="5" fill="${lens}" opacity=".7"/>`;
+   if(S.light==='square')o+=`<rect x="590" y="186" width="10" height="9" rx="1" fill="${lens}"/>`;}
+ else{
+   if(S.light==='slit')o+=`<path d="${P.nakedFace}" fill="${S.main}"/><path d="M552 182 L578 180 L579 188 L553 190 Z" fill="${lens}"/>`;
+   if(S.light==='round')o+=line(528,172,546,172,DARK,5)+`<circle cx="560" cy="172" r="18" fill="#222"/><ellipse cx="575" cy="172" rx="4.5" ry="15" fill="${lens}"/>`;
+   if(S.light==='square')o+=line(528,172,546,172,DARK,5)+`<rect x="544" y="157" width="28" height="30" rx="5" fill="#222"/><rect x="570" y="160" width="6" height="24" rx="2" fill="${lens}"/>`;}
+ o+=`</g>`;
+ o+=`<g data-part="mirror">`;
+ if(S.mirror==='stock'){
+   if(cowled)o+=line(546,132,551,110,'#222',3)+`<ellipse cx="560" cy="106" rx="13" ry="6" fill="#1b1b1d"/>`;
+   else{const gx=S.bar==='bar'?506:500,gy=S.bar==='bar'?122:166;o+=line(gx,gy,512,96,'#222',3)+`<ellipse cx="518" cy="92" rx="12" ry="6" fill="#1b1b1d"/>`;}}
+ if(S.mirror==='barend'){const g=S.bar==='bar'?{x:470,y:118}:{x:474,y:171};o+=`<ellipse cx="${g.x-4}" cy="${g.y}" rx="5" ry="10" fill="#1b1b1d"/>`;}
+ o+=`</g></g>`;
+ return o;
+}
+
+/* ================= AMERICAN (cruiser) ================= */
+const US_PAINT=[['#141416','ブラック'],['#6e1420','ワインレッド'],['#1d3a7a','キャンディブルー'],['#e8dfc9','クリーム'],['#b8bec6','シルバー'],['#4f5a3a','オリーブドラブ'],['#c8571b','バーントオレンジ'],['#4d5560','ガンメタ']];
+const US={
+ label:'アメリカン',wheelbase:'1,610',lowerMax:20,
+ aria:'カスタムしたアメリカンのサイドビュー',
+ PARTS:{
+  tank:['タンク',[['teardrop','ティアドロップ'],['fat','ファットタンク'],['peanut','ピーナッツ']]],
+  seat:['シート',[['step','段付きタンデム'],['solo','ソロサドル'],['kq','キング＆クイーン']]],
+  sissy:['シーシーバー',[['none','なし'],['short','ショート'],['tall','ロング']]],
+  bar:['ハンドル',[['pullback','プルバック'],['ape','エイプハンガー'],['drag','ドラッグバー']]],
+  shield:['ウインドシールド',[['none','なし'],['short','ショート'],['tall','ロング']]],
+  light:['ヘッドライト',[['round','7インチ丸目'],['bullet','小ぶり丸目'],['twin','フォグランプ付き']]],
+  livery:['グラフィック',[['solid','ソリッド'],['panel','タンクパネル'],['flame','ファイヤーパターン'],['pinstripe','ピンストライプ']]],
+  exhaust:['マフラー',[['stagger','2本出しロング'],['fishtail','フィッシュテール'],['drag','ドラッグパイプ']]],
+  frontFender:['フロントフェンダー',[['deep','ディープ'],['short','ショート'],['none','なし']]],
+  rearFender:['リアフェンダー',[['deep','ディープ'],['bobbed','ボブ']]],
+  bags:['サドルバッグ',[['none','なし'],['leather','レザー']]],
+  wheel:['ホイール',[['spoke','ワイヤースポーク'],['cast','キャスト'],['disc','ディッシュ']]],
+  engine:['エンジン仕上げ',[['chrome','クローム'],['black','ブラックアウト']]],
+ },
+ SW:{
+  main:US_PAINT, sub:US_PAINT,
+  accent:[['#c9ced4','シルバー'],['#f2f2f2','ホワイト'],['#c79a2b','ゴールド'],['#c4161c','レッド'],['#e8dfc9','クリーム'],['#111111','ブラック']],
+  frameColor:[['#141416','ブラック'],['#6e1420','ワインレッド'],['#b8bec6','シルバー']],
+  seatColor:[['#1b1b1d','ブラック'],['#5a3420','ブラウン'],['#9a6b3f','タン'],['#6e1919','オックスブラッド']],
+  rimColor:[['#d2d6db','クローム'],['#1c1c1e','ブラック'],['#c79a2b','ゴールド']],
+ },
+ COLOR_LABEL:{main:'メインカラー',sub:'サブカラー',accent:'ピンストライプ・縁取り',frameColor:'フレーム',seatColor:'シート・バッグ',rimColor:'リム・スポーク'},
+ BOOL:new Set(),
+ DEFAULT:{tank:'teardrop',seat:'step',sissy:'none',bar:'pullback',shield:'none',light:'round',livery:'panel',exhaust:'stagger',frontFender:'deep',rearFender:'deep',bags:'none',wheel:'spoke',engine:'chrome',
+  main:'#141416',sub:'#4d5560',accent:'#c9ced4',frameColor:'#141416',seatColor:'#1b1b1d',rimColor:'#d2d6db',lower:0},
+ PRESETS:[
+  ['ノーマル',{}],
+  ['ボバー',{tank:'peanut',seat:'solo',bar:'drag',light:'bullet',livery:'solid',exhaust:'drag',frontFender:'none',rearFender:'bobbed',engine:'black',
+   main:'#4f5a3a',sub:'#4f5a3a',accent:'#e8dfc9',seatColor:'#5a3420',rimColor:'#1c1c1e',lower:12}],
+  ['チョッパー',{tank:'peanut',seat:'kq',sissy:'tall',bar:'ape',light:'bullet',livery:'flame',exhaust:'fishtail',frontFender:'none',rearFender:'bobbed',
+   main:'#6e1420',sub:'#c8571b',accent:'#c79a2b',rimColor:'#d2d6db',lower:6}],
+  ['ツーリング',{tank:'fat',sissy:'short',shield:'tall',light:'twin',livery:'pinstripe',bags:'leather',wheel:'cast',
+   main:'#1d3a7a',sub:'#1d3a7a',accent:'#c9ced4',seatColor:'#5a3420'}],
+  ['ブラックアウト',{tank:'fat',livery:'solid',wheel:'disc',engine:'black',frontFender:'short',main:'#141416',sub:'#141416',accent:'#4d5560',rimColor:'#1c1c1e',lower:16}],
+ ],
+ styleName(s){
+  if(s.bar==='ape')return 'チョッパー';
+  if(s.rearFender==='bobbed'&&s.seat==='solo')return 'ボバー';
+  if(s.bags==='leather'&&s.shield!=='none')return 'ツーリングクルーザー';
+  if(s.engine==='black'&&s.main==='#141416')return 'ダークカスタム';
+  return 'アメリカン';
+ },
+ weight(s){let w=245;
+  w+={none:0,short:1,tall:2}[s.sissy];w+={none:0,short:3,tall:4.5}[s.shield];w+=s.bags==='leather'?6:0;
+  w+={stagger:0,fishtail:-1,drag:-4}[s.exhaust];w+=s.rearFender==='bobbed'?-3:0;w+={deep:0,short:-1,none:-2}[s.frontFender];
+  w+=s.wheel==='disc'?2:0;w+=s.light==='twin'?2:0;w+={teardrop:0,fat:2,peanut:-1.5}[s.tank];return w},
+ sheet(s){
+  const rows=['tank','seat','sissy','bar','shield','light','exhaust','frontFender','rearFender','bags','wheel','engine','livery'].map(k=>[this.PARTS[k][0],optLabel(k,s[k])]);
+  const colors=['main','sub','accent','frameColor','seatColor','rimColor'].map(k=>[this.COLOR_LABEL[k],colorName(k,s[k]),s[k]]);
+  const seatH={step:695,solo:680,kq:705}[s.seat];
+  const specs=[['シート高',`${seatH-s.lower*2} mm`],['最低地上高',`${140-s.lower*2} mm`],['車両重量',`${this.weight(s).toFixed(1)} kg`]];
+  return {rows,colors,specs};
+ },
+ partMap:{wheel:'sec-wheel',frame:'sec-frameColor',engine:'sec-engine',exhaust:'sec-exhaust',seat:'sec-seat',paint:'sec-paint',light:'sec-light',bar:'sec-bar',sissy:'sec-sissy',bags:'sec-bags',shield:'sec-shield',frontFender:'sec-frontFender',rearFender:'sec-rearFender',fork:'sec-light'},
+ shelf(){
+  let h=partSec('tank');
+  h+=`<section class="sec" id="sec-paint"><h3>塗装 <em>PAINT</em></h3>
+    <div class="label-sm">グラフィック</div>${chipRow('livery',this.PARTS.livery[1])}
+    <div class="label-sm">メインカラー</div>${swatchRow('main')}
+    <div class="label-sm">サブカラー（パネル・炎）</div>${swatchRow('sub')}
+    <div class="label-sm">ピンストライプ・縁取り</div>${swatchRow('accent')}</section>`;
+  h+=partSec('seat')+partSec('sissy')+partSec('bar')+partSec('shield')+partSec('light')+partSec('exhaust')+partSec('frontFender')+partSec('rearFender')+partSec('bags');
+  h+=`<section class="sec" id="sec-wheel"><h3>ホイール</h3>${chipRow('wheel',this.PARTS.wheel[1])}<div class="label-sm">リム・スポーク色</div>${swatchRow('rimColor')}</section>`;
+  h+=partSec('engine');
+  h+=`<section class="sec" id="sec-frameColor"><h3>フレーム</h3>${swatchRow('frameColor')}</section>`;
+  h+=`<section class="sec" id="sec-seatColor"><h3>シート・バッグの革</h3>${swatchRow('seatColor')}</section>`;
+  return h;
+ },
+ uiExtra(){},
+ randomExtra(){},
+ draw(){return drawUS()},
+};
+
+const US_TANK={
+ teardrop:{d:'M404 210 C398 178 436 160 488 158 C524 157 546 166 548 186 L544 208 Z',cap:157,panel:[476,188,54,12],hl:'M420 182 C436 168 470 163 506 164'},
+ fat:{d:'M394 214 C386 172 430 150 490 150 C532 150 554 164 554 190 L548 212 Z',cap:149,panel:[474,186,64,15],hl:'M412 178 C430 160 470 155 512 157'},
+ peanut:{d:'M432 206 C428 182 456 168 494 168 C526 168 544 176 546 192 L540 206 Z',cap:167,panel:[490,190,40,9],hl:'M444 186 C458 175 482 172 510 173'},
+};
+const US_FLAME='M566 156 L566 218 L506 214 C520 208 510 202 476 208 C498 198 486 192 452 196 C474 186 466 180 432 184 C458 172 474 168 484 170 C476 164 506 156 566 156 Z';
+const US_SEAT={
+ step:'M402 204 C380 214 350 224 322 222 C306 220 300 206 290 198 C270 192 244 192 232 198 C224 204 226 214 236 218 L310 236 L404 224 Z',
+ kq:'M402 204 C380 214 350 224 322 222 C306 220 302 200 298 180 C294 168 276 166 270 176 L264 198 C250 194 236 197 232 206 L238 220 L310 236 L404 224 Z',
+ solo:'M404 206 C392 194 360 192 334 198 C320 202 320 214 334 218 L400 222 Z',
+};
+const US_SHIELD={
+ short:'M566 178 C560 152 556 126 556 106 C566 100 582 98 596 100 C600 126 604 154 606 178 Z',
+ tall:'M566 178 C558 140 552 96 552 64 C564 58 584 56 600 58 C602 98 604 140 606 178 Z',
+};
+function wheelUS(c,front){
+ const tr=front?68:60, tw=front?15:24, rr=front?57:46;
+ let g=`<g data-part="wheel">`;
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="${tr}" fill="none" stroke="${TIRE}" stroke-width="${tw}"/>`;
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="${tr+tw/2-3}" fill="none" stroke="#3a3a3a" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="${rr}" fill="none" stroke="${S.rimColor}" stroke-width="5"/>`;
+ const rc=S.rimColor, hub=front?14:20;
+ if(S.wheel==='spoke'){
+  for(let i=0;i<40;i++){const a=i*9,b=a+(i%2?24:-24);const p=pol(c,hub,a),q=pol(c,rr-2,b);g+=line(p.x,p.y,q.x,q.y,rc,.9)}
+ }else if(S.wheel==='cast'){
+  for(let i=0;i<9;i++){const a=i*40-90;g+=poly([pol(c,hub,a-9),pol(c,rr-2,a-2.6),pol(c,rr-2,a+2.6),pol(c,hub,a+9)],rc)}
+ }else{
+  g+=`<circle cx="${c.x}" cy="${c.y}" r="${rr-1}" fill="${rc}"/><circle cx="${c.x}" cy="${c.y}" r="${r1(rr*.66)}" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2"/>`;
+  g+=`<circle cx="${r1(c.x-rr*.28)}" cy="${r1(c.y-rr*.34)}" r="${r1(rr*.45)}" fill="rgba(255,255,255,.14)"/>`;
+ }
+ if(front){g+=`<circle cx="${c.x}" cy="${c.y}" r="36" fill="none" stroke="#a7adb5" stroke-width="10"/>`;
+  for(let i=0;i<14;i++){const p=pol(c,36,i*(360/14));g+=`<circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="1.7" fill="#5b6067"/>`}
+  const k=pol(c,34,-150);g+=`<rect x="${r1(k.x-8)}" y="${r1(k.y-13)}" width="16" height="26" rx="5" fill="#9aa0a8" transform="rotate(-30 ${r1(k.x)} ${r1(k.y)})"/>`;}
+ else{g+=`<circle cx="${c.x}" cy="${c.y}" r="26" fill="#9aa0a8"/><circle cx="${c.x}" cy="${c.y}" r="20" fill="none" stroke="#7d838b" stroke-width="2"/>`;}
+ g+=`<circle cx="${c.x}" cy="${c.y}" r="${hub-2}" fill="#c3c8ce"/><circle cx="${c.x}" cy="${c.y}" r="4.5" fill="#2d2f33"/></g>`;
+ return g;
+}
+function mufflerUS(x1,y,x2,h){
+ return `<path d="M${x1} ${y-h} L${x2+7} ${y-h+1.5} L${x2} ${y+h-1} L${x1} ${y+h} Z" fill="${CHROME}"/>`+line(x1,y-h*.45,x2+6,y-h*.4,CHROME_HI,3)+line(x1-2,y-h,x1-2,y+h,'#8e949c',2.5)+
+  `<ellipse cx="${x2+3.5}" cy="${y}" rx="2.6" ry="${h-1.5}" fill="#4a4d52"/>`;
+}
+function fishtailUS(x,y){
+ return `<path d="M${x} ${y-6} L${x-38} ${y-14} C${x-46} ${y-4} ${x-46} ${y+6} ${x-38} ${y+12} L${x} ${y+6} Z" fill="${CHROME}"/>`+line(x,y-3,x-38,y-9,CHROME_HI,2.5);
+}
+function exhaustUS(){
+ switch(S.exhaust){
+  case 'stagger':return pipe('M484 262 C508 288 502 348 462 356 L262 356',12)+mufflerUS(262,356,120,10)+
+    pipe('M366 262 C342 270 338 300 306 306 L262 306',12)+mufflerUS(262,306,126,10);
+  case 'fishtail':return pipe('M484 262 C508 288 502 348 462 356 L176 352',12)+fishtailUS(176,352)+
+    pipe('M366 262 C342 270 338 300 306 306 L182 300',12)+fishtailUS(182,300);
+  case 'drag':return pipe('M484 262 C506 286 498 326 462 330 L236 318',11)+`<ellipse cx="236" cy="318" rx="2.5" ry="5" fill="#3a3c40"/>`+
+    pipe('M366 262 C344 268 334 290 304 292 L242 288',11)+`<ellipse cx="242" cy="288" rx="2.5" ry="5" fill="#3a3c40"/>`;
+ }
+}
+function engineUS(){
+ const ch=S.engine==='chrome';
+ const fin=ch?'#3a3d42':'#1f2023', edge=ch?'#a9afb7':'#6f747b', cover=ch?CHROME:'#2c2e32', coverHi=ch?CHROME_HI:'#4a4d53', cs=ch?'#9ea4ac':'#2a2c30';
+ const cyl=a=>{let f='';for(let y=242;y<302;y+=6)f+=line(395,y,455,y,edge,2.2);
+  return `<g transform="rotate(${a} 425 318)"><rect x="401" y="236" width="48" height="70" rx="3" fill="${fin}"/>${f}<rect x="395" y="220" width="60" height="21" rx="7" fill="${cover}"/><rect x="401" y="224" width="48" height="4" rx="2" fill="${coverHi}"/></g>`};
+ return `<g data-part="engine">${cyl(-32)}${cyl(32)}
+  <path d="M356 300 L494 298 C510 314 504 352 482 358 L376 360 C352 354 346 318 356 300 Z" fill="${cs}"/>
+  <ellipse cx="450" cy="332" rx="28" ry="19" fill="${cover}"/><ellipse cx="444" cy="326" rx="16" ry="7" fill="${coverHi}" opacity=".7"/>
+  <ellipse cx="378" cy="334" rx="18" ry="14" fill="${cover}"/><ellipse cx="374" cy="330" rx="9" ry="4" fill="${coverHi}" opacity=".7"/>
+  <circle cx="425" cy="264" r="26" fill="${cover}"/><circle cx="425" cy="264" r="19" fill="none" stroke="${coverHi}" stroke-width="3"/><circle cx="425" cy="264" r="9" fill="${ch?'#7d838b':'#1d1e21'}"/>
+  <path d="M410 250 A20 20 0 0 1 436 246" fill="none" stroke="${CHROME_HI}" stroke-width="2.5" opacity="${ch?1:.35}"/></g>`;
+}
+function fenderLiveryUS(c,a1,a2,rm,front){
+ let o='';
+ if(S.livery==='panel')o+=`<path d="${arc(c,rm,a1+(a2>a1?6:-6),a2+(a2>a1?-6:6))}" fill="none" stroke="${S.sub}" stroke-width="4"/>`;
+ if(S.livery==='pinstripe')o+=`<path d="${arc(c,rm,a1+(a2>a1?5:-5),a2+(a2>a1?-5:5))}" fill="none" stroke="${S.accent}" stroke-width="1.5"/>`;
+ if(S.livery==='flame'&&front)o+=`<path d="M${pt(pol(c,96,-8))} L${pt(pol(c,96,-58))} L${pt(pol(c,79,-76))} L${pt(pol(c,74,-60))} L${pt(pol(c,84,-62))} L${pt(pol(c,72,-44))} L${pt(pol(c,80,-38))} L${pt(pol(c,70,-26))} Z" fill="${S.sub}" stroke="${S.accent}" stroke-width="1.5"/>`;
+ return o;
+}
+function drawUS(){
+ const dy=S.lower, RA={x:190,y:328}, FA={x:628,y:324};
+ const T=US_TANK[S.tank];
+ const RFa=S.rearFender==='deep'?[-38,-200]:[-40,-158], RFo=S.rearFender==='deep'?94:86;
+ const RF=band(RA,RFo,73,RFa[0],RFa[1]);
+ const FFa=S.frontFender==='deep'?[-22,-152]:[-55,-125];
+ const FF=S.frontFender==='none'?null:band(FA,84,75,FFa[0],FFa[1]);
+ let o=`<defs><clipPath id="tankClip"><path d="${T.d}"/></clipPath><clipPath id="rfClip"><path d="${RF}"/></clipPath>${FF?`<clipPath id="ffClip"><path d="${FF}"/></clipPath>`:''}</defs>`;
+ o+=ground(RA,FA,US.wheelbase);
+ o+=wheelUS(RA,false)+wheelUS(FA,true);
+ // rear fender
+ const st=pol(RA,75,-128);
+ o+=`<g data-part="rearFender">${line(RA.x,RA.y,st.x,st.y,CHROME,7)}<path d="${RF}" fill="${S.main}"/><g clip-path="url(#rfClip)">${fenderLiveryUS(RA,RFa[0],RFa[1],79.5,false)}</g>
+   <path d="${arc(RA,RFo-2,RFa[0]-4,-120)}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2"/>`;
+ const tl=pol(RA,RFo+2,S.rearFender==='deep'?-172:-150);
+ o+=`<rect x="${r1(tl.x-6)}" y="${r1(tl.y-5)}" width="12" height="9" rx="3" fill="#c81e2b"/>`;
+ const ts=pol(RA,RFo+4,S.rearFender==='deep'?-150:-132);
+ o+=`<ellipse cx="${r1(ts.x-6)}" cy="${r1(ts.y)}" rx="5" ry="3.5" fill="#f0a020"/></g>`;
+ o+=swingarm({x:340,y:314+dy},RA,S.frameColor,10,7);
+ // body A
+ o+=`<g transform="translate(0 ${dy})">`;
+ o+=`<g data-part="frame" fill="none" stroke="${S.frameColor}" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+   <path d="M548 168 L338 214"/><path d="M552 208 L520 300 L500 350 L356 352 L340 314 L338 214"/><path d="M338 232 L236 240" stroke-width="6"/>
+   <line x1="546" y1="152" x2="552" y2="214" stroke-width="16"/></g>`;
+ o+=engineUS();
+ o+=`<g data-part="exhaust">${exhaustUS()}</g>`;
+ o+=`<rect x="462" y="342" width="52" height="7" rx="3" fill="#232427"/>`+line(464,342,512,342,CHROME,2);
+ o+=`</g>`;
+ // front fender & fork
+ if(FF)o+=`<g data-part="frontFender"><path d="${FF}" fill="${S.main}"/><g clip-path="url(#ffClip)">${fenderLiveryUS(FA,FFa[0],FFa[1],79.5,true)}</g>
+   <path d="${arc(FA,82,FFa[0]-4,FFa[1]+30)}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2"/></g>`;
+ const FT={x:548,y:150+dy}, LC=lerp(FT,FA,.2), SL=lerp(FT,FA,.62);
+ o+=`<g data-part="fork">${line(FT.x,FT.y,FA.x,FA.y,CHROME,12)}${line(FT.x+3,FT.y,FA.x+3,FA.y,CHROME_HI,2.5)}${line(SL.x,SL.y,FA.x,FA.y,'#c3c8ce',16)}
+   ${line(FT.x-16,FT.y+4,FT.x+14,FT.y-2,CHROME,9)}${line(LC.x-16,LC.y+4,LC.x+14,LC.y-2,CHROME,9)}</g>`;
+ // body B
+ o+=`<g transform="translate(0 ${dy})">`;
+ // sissy bar (behind seat)
+ if(S.sissy!=='none'){const tall=S.sissy==='tall';
+  o+=`<g data-part="sissy">${line(254,238,tall?238:246,tall?116:176,CHROME,5)}${line(254,238,tall?238:246,tall?116:176,CHROME_HI,1.5)}
+   <rect x="${tall?224:232}" y="${tall?120:170}" width="24" height="${tall?40:32}" rx="9" fill="${S.seatColor}" transform="rotate(-7 ${tall?236:244} ${tall?140:186})"/></g>`;}
+ // tank
+ o+=`<g data-part="paint"><path d="${T.d}" fill="${S.main}"/><g clip-path="url(#tankClip)">`;
+ const [px,py,prx,pry]=T.panel;
+ if(S.livery==='panel')o+=`<ellipse cx="${px}" cy="${py}" rx="${prx}" ry="${pry}" fill="${S.sub}" stroke="${S.accent}" stroke-width="1.8" transform="rotate(-3 ${px} ${py})"/>`;
+ if(S.livery==='pinstripe')o+=`<ellipse cx="${px}" cy="${py}" rx="${prx}" ry="${pry}" fill="none" stroke="${S.accent}" stroke-width="1.6" transform="rotate(-3 ${px} ${py})"/><ellipse cx="${px}" cy="${py}" rx="${prx-7}" ry="${Math.max(3,pry-4)}" fill="none" stroke="${S.accent}" stroke-width=".9" transform="rotate(-3 ${px} ${py})"/>`;
+ if(S.livery==='flame')o+=`<path d="${US_FLAME}" fill="${S.sub}" stroke="${S.accent}" stroke-width="1.8"/>`;
+ o+=`</g><path d="${T.hl}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3" stroke-linecap="round"/>
+   <rect x="500" y="${T.cap-4}" width="16" height="6" rx="3" fill="${CHROME}"/></g>`;
+ // seat
+ o+=`<g data-part="seat"><path d="${US_SEAT[S.seat]}" fill="${S.seatColor}"/>`;
+ if(S.seat==='solo')o+=`<path d="M342 218 l-6 4 l12 4 l-12 4 l12 4 l-6 4" fill="none" stroke="${CHROME}" stroke-width="2.5"/><path d="M386 220 l-6 4 l12 4 l-6 4" fill="none" stroke="${CHROME}" stroke-width="2.5"/>`;
+ else o+=`<path d="M398 208 C378 216 350 224 324 222" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="2"/>`+line(238,220,308,234,CHROME,2.5);
+ o+=`</g>`;
+ // saddlebags
+ if(S.bags==='leather'){
+  o+=`<g data-part="bags"><path d="M160 238 L262 238 C268 238 270 244 270 250 L266 284 C264 292 258 294 250 294 L176 294 C166 294 162 288 160 280 Z" fill="${S.seatColor}"/>
+   <path d="M160 238 L262 238 C268 238 270 244 270 250 L268 262 L162 262 Z" fill="rgba(0,0,0,.22)"/>
+   <rect x="188" y="244" width="8" height="34" rx="2" fill="rgba(0,0,0,.35)"/><rect x="232" y="244" width="8" height="34" rx="2" fill="rgba(0,0,0,.35)"/>
+   <rect x="186" y="266" width="12" height="8" rx="1.5" fill="none" stroke="${CHROME}" stroke-width="2"/><rect x="230" y="266" width="12" height="8" rx="1.5" fill="none" stroke="${CHROME}" stroke-width="2"/>`;
+  for(let x=170;x<264;x+=12)o+=`<circle cx="${x}" cy="258" r="1.6" fill="${CHROME}"/>`;
+  o+=`</g>`;}
+ // handlebar & mirror
+ o+=`<g data-part="bar">`+line(546,156,544,138,CHROME,6);
+ if(S.bar==='pullback')o+=`<path d="M544 138 C530 126 508 126 496 136" fill="none" stroke="${CHROME}" stroke-width="6" stroke-linecap="round"/>`+line(496,136,476,140,'#141414',11)+line(500,138,486,150,CHROME,2)+line(512,130,522,94,CHROME,2.5)+`<ellipse cx="525" cy="90" rx="10" ry="8" fill="${CHROME}"/>`;
+ if(S.bar==='ape')o+=`<path d="M544 140 L536 76 C534 68 520 68 510 72 L500 78" fill="none" stroke="${CHROME}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`+line(500,78,482,84,'#141414',11)+line(504,80,492,94,CHROME,2)+line(518,72,526,42,CHROME,2.5)+`<ellipse cx="528" cy="38" rx="10" ry="8" fill="${CHROME}"/>`;
+ if(S.bar==='drag')o+=`<path d="M544 140 L541 133 L500 134" fill="none" stroke="${CHROME}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`+line(500,134,480,135,'#141414',11)+line(504,136,490,146,CHROME,2)+line(514,134,520,102,CHROME,2.5)+`<ellipse cx="522" cy="98" rx="9" ry="7" fill="${CHROME}"/>`;
+ o+=`</g>`;
+ // headlight
+ const L0={x:564,y:185},lens='#f4efc6';
+ o+=`<g data-part="light">`;
+ if(S.light==='bullet')o+=line(L0.x,L0.y,574,180,CHROME,4)+`<circle cx="584" cy="178" r="14" fill="${CHROME}"/><path d="M574 170 A12 12 0 0 1 590 167" fill="none" stroke="${CHROME_HI}" stroke-width="2.5"/><ellipse cx="597" cy="178" rx="4" ry="13" fill="${lens}"/>`;
+ else o+=line(L0.x,L0.y,574,182,CHROME,4)+`<circle cx="590" cy="180" r="22" fill="${CHROME}"/><path d="M574 168 A20 20 0 0 1 598 162" fill="none" stroke="${CHROME_HI}" stroke-width="3"/><ellipse cx="609" cy="180" rx="6" ry="21" fill="${lens}"/>`;
+ if(S.light==='twin')o+=line(570,214,592,226,CHROME,4)+`<circle cx="598" cy="228" r="10" fill="${CHROME}"/><ellipse cx="607" cy="228" rx="3" ry="9.5" fill="${lens}"/>`;
+ o+=line(566,198,578,203,CHROME,2.5)+`<ellipse cx="582" cy="204" rx="6" ry="4" fill="#f0a020"/></g>`;
+ // windshield
+ if(S.shield!=='none')o+=`<g data-part="shield"><path d="${US_SHIELD[S.shield]}" fill="rgba(170,200,225,.32)" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>`+
+   line(566,176,560,160,CHROME,3)+line(605,176,603,160,CHROME,3)+`<path d="M562 ${S.shield==='tall'?120:140} C566 ${S.shield==='tall'?100:122} 572 ${S.shield==='tall'?80:110} 580 ${S.shield==='tall'?72:106}" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2"/></g>`;
+ o+=`</g>`;
+ return o;
+}
+
+/* ================= state & UI ================= */
+const BASES={ss:SS,us:US};
+const KEY_CUR='ss-garage-current',KEY_SAVES='ss-garage-builds';
+function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let cur=(()=>{const v=load(KEY_CUR);
+ if(v&&v.base)return {base:BASES[v.base]?v.base:'ss',ss:{...SS.DEFAULT,...(v.ss||{})},us:{...US.DEFAULT,...(v.us||{})}};
+ return {base:'ss',ss:{...SS.DEFAULT,...(v||{})},us:{...US.DEFAULT}};})();
+let BASE=BASES[cur.base]; S=cur[cur.base];
+function setState(next){cur[cur.base]=next;S=next}
+
+const optLabel=(k,v)=>(BASE.PARTS[k][1].find(o=>o[0]===v)||[,v])[1];
+const colorName=(k,v)=>((BASE.SW[k]||[]).find(c=>c[0]===v)||[,'カスタム'])[1];
+const chipRow=(key,opts)=>`<div class="chips" role="group">`+opts.map(([v,l])=>`<button type="button" class="chip" id="opt-${key}-${v}" data-k="${key}" data-v="${v}">${l}</button>`).join('')+`</div>`;
+const swatchRow=key=>`<div class="swatches">`+BASE.SW[key].map(([c,n])=>`<button type="button" class="sw" id="sw-${key}-${c.slice(1)}" data-k="${key}" data-v="${c}" title="${n}" aria-label="${n}" style="background:${c}"></button>`).join('')+
+ `<label class="custom" title="好きな色を選ぶ"><input type="color" id="pick-${key}" data-k="${key}" aria-label="${BASE.COLOR_LABEL[key]}のカスタム色"><span>＋</span></label></div>`;
+const partSec=(k,extra='')=>`<section class="sec" id="sec-${k}"><h3>${BASE.PARTS[k][0]}</h3>${chipRow(k,BASE.PARTS[k][1])}${extra}</section>`;
+
+function buildShelf(){
+ const shelf=document.getElementById('shelf');
+ let h=`<section class="sec"><h3>ベース車両</h3><div class="chips">${Object.entries(BASES).map(([k,b])=>`<button type="button" class="chip" id="base-${k}" data-base="${k}" aria-pressed="${k===cur.base}">${b.label}</button>`).join('')}</div>
+   <div class="label-sm">ベース仕様</div><div class="chips">${BASE.PRESETS.map(([n],i)=>`<button type="button" class="chip" id="preset-${cur.base}-${i}" data-preset="${i}">${n}</button>`).join('')}</div></section>`;
+ h+=BASE.shelf();
+ h+=`<section class="sec" id="sec-lower"><h3>ローダウン <em>車高</em></h3><div class="range"><input type="range" id="lower" min="0" max="${BASE.lowerMax}" step="1" aria-label="ローダウン量"><output id="lower-out"></output></div></section>`;
+ h+=`<section class="sec" id="sec-saves"><h3>マイガレージ <em>このブラウザに保存</em></h3><button type="button" class="btn primary" id="btn-save">今の仕様を保存</button><div class="saves" id="saves"></div></section>`;
+ shelf.innerHTML=h;
+ document.getElementById('btn-save').onclick=saveBuild;
+ document.getElementById('bike').setAttribute('aria-label',BASE.aria);
+}
+const shelfEl=document.getElementById('shelf');
+shelfEl.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b||b.disabled)return;
+ if(b.dataset.base){if(b.dataset.base!==cur.base)switchBase(b.dataset.base);return}
+ if(b.dataset.preset!=null){setState({...BASE.DEFAULT,...BASE.PRESETS[b.dataset.preset][1]});return render()}
+ if(b.dataset.k){const k=b.dataset.k,v=b.dataset.v;S[k]=BASE.BOOL.has(k)?v==='on':v;render()}
+});
+shelfEl.addEventListener('input',e=>{
+ const t=e.target;
+ if(t.id==='lower'){S.lower=+t.value;render()}
+ else if(t.id==='zekken-num'){S.number=Math.max(0,Math.min(99,parseInt(t.value,10)||0));S.zekken=true;render()}
+ else if(t.type==='color'){S[t.dataset.k]=t.value;render()}
+});
+function switchBase(k){cur.base=k;BASE=BASES[k];S=cur[k];buildShelf();render()}
+
+function render(){
+ document.getElementById('bike').innerHTML=BASE.draw();
+ updateUI();store(KEY_CUR,cur);
+}
+function updateUI(){
+ document.querySelectorAll('.chip[data-k]').forEach(b=>{const k=b.dataset.k,v=b.dataset.v;
+  b.setAttribute('aria-pressed',String(BASE.BOOL.has(k)?(v==='on')===S[k]:S[k]===v))});
+ BASE.uiExtra(S);
+ document.querySelectorAll('.sw').forEach(b=>b.setAttribute('aria-pressed',String(S[b.dataset.k]===b.dataset.v)));
+ document.querySelectorAll('.custom input').forEach(i=>{if(/^#[0-9a-f]{6}$/i.test(S[i.dataset.k]))i.value=S[i.dataset.k]});
+ const pi=BASE.PRESETS.findIndex(([,p])=>{const f={...BASE.DEFAULT,...p};return Object.keys(f).every(k=>f[k]===S[k])});
+ document.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.preset===pi)));
+ document.getElementById('lower').value=S.lower;document.getElementById('lower-out').textContent=`−${S.lower*2} mm`;
+ document.getElementById('style-name').textContent=BASE.styleName(S);
+ const {rows,colors,specs}=BASE.sheet(S);
+ document.getElementById('sheet').innerHTML=[['ベース車両',BASE.label]].concat(rows).map(([a,b])=>`<div class="row"><span>${a}</span><span>${b}</span></div>`).join('')+
+  colors.map(([a,b,c])=>`<div class="row"><span>${a}</span><span>${c?`<i class="dot" style="background:${c}"></i>`:''}${b}</span></div>`).join('');
+ document.getElementById('specs').innerHTML=specs.map(([a,v])=>`<div class="spec"><small>${a}</small><b>${v}</b></div>`).join('')+`<span class="spec-note">数値は図面上の目安です</span>`;
+ renderSaves();
+}
+
+/* saves */
+const getSaves=()=>load(KEY_SAVES)||[];
+function saveBuild(){const list=getSaves();const n=list.length?Math.max(...list.map(x=>x.n))+1:1;const d=new Date();
+ list.unshift({n,base:cur.base,name:`ビルド #${n}`,date:`${d.getMonth()+1}/${d.getDate()}`,state:{...S}});store(KEY_SAVES,list.slice(0,20));renderSaves()}
+function renderSaves(){
+ const el=document.getElementById('saves');if(!el)return;const list=getSaves();
+ if(!list.length){el.innerHTML=`<p class="empty">保存した仕様はまだありません。気に入った組み合わせを保存しておくと、あとで呼び出せます。</p>`;return}
+ el.innerHTML=list.map((b,i)=>{const B=BASES[b.base||'ss'];return `<div class="save"><button type="button" class="load" data-load="${i}"><i class="dot" style="background:${b.state.main}"></i><span class="nm">${b.name}</span><span class="st">${B.label}・${B.styleName({...B.DEFAULT,...b.state})}・${b.date}</span></button><button type="button" class="del" data-del="${i}" aria-label="${b.name}を削除">×</button></div>`}).join('');
+}
+document.addEventListener('click',e=>{
+ const l=e.target.closest('[data-load]');if(l){const b=getSaves()[+l.dataset.load];const k=b.base||'ss';
+  cur[k]={...BASES[k].DEFAULT,...b.state};if(k!==cur.base)switchBase(k);else{S=cur[k];render()}return}
+ const d=e.target.closest('[data-del]');if(d){const list=getSaves();list.splice(+d.dataset.del,1);store(KEY_SAVES,list);renderSaves()}
+});
+
+document.getElementById('bike').addEventListener('click',e=>{
+ const g=e.target.closest('[data-part]');if(!g)return;
+ const sec=document.getElementById(BASE.partMap[g.dataset.part]);if(!sec)return;
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const off=innerWidth<=900?document.querySelector('.stage').offsetHeight:0;
+ window.scrollTo({top:sec.getBoundingClientRect().top+scrollY-off-16,behavior:reduce?'auto':'smooth'});
+ sec.classList.add('flash');setTimeout(()=>sec.classList.remove('flash'),900);
+});
+
+document.getElementById('btn-reset').onclick=()=>{setState({...BASE.DEFAULT});render()};
+document.getElementById('btn-random').onclick=()=>{
+ const pick=a=>a[Math.floor(Math.random()*a.length)];
+ for(const k of Object.keys(BASE.PARTS))S[k]=pick(BASE.PARTS[k][1])[0];
+ for(const k of Object.keys(BASE.SW))S[k]=pick(BASE.SW[k])[0];
+ BASE.randomExtra(S);S.lower=Math.floor(Math.random()*16);render();
+};
+
+buildShelf();render();
+</script>

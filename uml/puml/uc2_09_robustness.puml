@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-09 PDF保存 ロバストネス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "PDF生成\nPdfExporter" as PE
+boundary "PDF出力ダイアログ\nPdfDialog" as PD
+entity "作業状態\nWorkspace" as WS
+entity "ベース車両\nBaseVehicle" as VH
+control "描画制御\nRenderer" as RD
+entity "パーツ\nPart" as PT
+U -- CS : 1 PDF保存を押す
+CS --> PE : 1 出力要求
+PE --> PD : 2 ダイアログ表示／7 PDFを渡す／6a エラー表示
+U -- PD : 3 条件を選び出力
+PD --> PE : 3 出力指示
+PE --> WS : 4 仕様取得
+PE --> RD : 4 図を生成
+PE --> VH : 3a 標準仕様取得
+PE --> PT : 5 部品情報取得
+@enduml

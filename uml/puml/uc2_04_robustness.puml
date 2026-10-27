@@ -1,0 +1,27 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-04 組み合わせ制約 ロバストネス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "カスタム制御\nCustomizeController" as CU
+control "制約判定\nConstraintChecker" as CC
+entity "作業状態\nWorkspace" as WS
+entity "仕様\nBuildSpec" as SP
+entity "ベース車両\nBaseVehicle" as VH
+entity "制約ルール\nConstraint" as CN
+U -- CS : パーツを選ぶ(2-05)
+CS --> CU : 変更要求
+CU --> CC : 1 判定要求／3 結果を受け取る
+CC --> WS : 1 現在の仕様取得
+CC --> SP : 1 仮の仕様を作成
+CC --> VH : 2 ルール一覧取得
+CC --> CN : 2 ルールを評価
+CC --> CS : 4 選択肢を無効化／3b 理由表示
+@enduml

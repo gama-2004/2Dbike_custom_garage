@@ -1,0 +1,54 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+hide footbox
+title 2-09 PDF保存 シーケンス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+boundary "PDF出力ダイアログ\nPdfDialog" as PD
+control "PDF生成\nPdfExporter" as PE
+control "描画制御\nRenderer" as RD
+entity "作業状態\nWorkspace" as WS
+entity "ベース車両\nBaseVehicle" as VH
+entity "パーツ\nPart" as PT
+U -> CS : PDF保存を押す
+activate CS
+CS -> PE : requestExport()
+deactivate CS
+activate PE
+PE -> PD : open()
+deactivate PE
+activate PD
+U -> PD : 条件を選び出力
+PD -> PE : export(options)
+activate PE
+PE -> WS : getCurrent()
+WS --> PE : spec
+PE -> RD : renderSvg(spec)
+RD --> PE : svg
+PE -> PE : svgToImage(svg)
+opt ビフォー図を含める
+  PE -> VH : getDefaultSpec()
+  VH --> PE : before
+  PE -> RD : renderSvg(before)
+  RD --> PE : beforeSvg
+end
+loop 各部位
+  PE -> PT : getInfo()
+  PT --> PE : 名称・重量・価格
+end
+PE -> PE : buildPdf()
+alt 成功
+  PE -> PD : download(blob, fileName)
+else 失敗
+  PE -> PD : showError(text)
+end
+deactivate PE
+deactivate PD
+@enduml

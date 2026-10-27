@@ -1,0 +1,29 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-07 ビフォーアフター比較 ロバストネス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "比較制御\nCompareController" as CP
+entity "作業状態\nWorkspace" as WS
+entity "ベース車両\nBaseVehicle" as VH
+control "描画制御\nRenderer" as RD
+entity "パーツ\nPart" as PT
+boundary "比較画面\nCompareView" as CV
+U -- CS : 1 比較を押す
+CS --> CP : 1 比較要求
+CP --> WS : 2 現在の仕様取得
+CP --> VH : 2 標準仕様取得
+CP --> RD : 3 両方を描画
+CP --> PT : 4 重量差を計算
+CP --> CV : 5 図と差分を表示
+U -- CV : 5a スライダー操作／6 閉じる
+CV --> CP : 6 終了
+CP --> CS : 6 編集画面に戻す
+@enduml

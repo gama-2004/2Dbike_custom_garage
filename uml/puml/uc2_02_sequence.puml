@@ -1,0 +1,46 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+hide footbox
+title 2-02 ベース車両追加 シーケンス図
+actor "管理者" as A
+boundary "管理画面\nAdminScreen" as AS
+control "カタログ管理制御\nCatalogManager" as CM
+control "描画制御\nRenderer" as RD
+entity "カタログ\nCatalog" as CA
+entity "ベース車両\nBaseVehicle" as VH
+A -> AS : 定義ファイルを指定
+activate AS
+AS -> CM : importVehicle(file)
+activate CM
+CM -> CM : parse(file)
+CM -> CM : validate(def)
+alt 検証エラー
+  CM --> AS : ValidationResult(errors)
+  AS -> AS : showErrors(errors)
+else 正常
+  CM -> CA : exists(def.id)
+  CA --> CM : false
+  create VH
+  CM -> VH : new BaseVehicle(def)
+  CM -> RD : renderPreview(vehicle)
+  activate RD
+  RD --> CM : svg
+  deactivate RD
+  CM --> AS : ValidationResult(ok)
+  AS -> AS : showPreview(svg)
+  A -> AS : 登録を確定
+  AS -> CM : commit()
+  CM -> CA : register(vehicle)
+  CM --> AS : 完了
+  AS -> AS : showResult("登録しました")
+end
+deactivate CM
+deactivate AS
+@enduml

@@ -1,0 +1,64 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+hide footbox
+title 2-08 仕様保存・呼出 シーケンス図
+actor "利用者" as U
+boundary "保存一覧\nSaveListPanel" as SL
+boundary "車両ビュー\nBikeView" as BV
+control "保存管理\nBuildRepository" as BR
+control "ベース選択制御\nVehicleSelector" as VS
+control "制約判定\nConstraintChecker" as CC
+control "履歴管理\nHistoryManager" as HM
+control "描画制御\nRenderer" as RD
+entity "作業状態\nWorkspace" as WS
+entity "保存仕様\nSavedBuild" as SB
+group 保存
+U -> SL : 名前を入力して保存
+activate SL
+SL -> BR : save(name)
+activate BR
+BR -> WS : getCurrent()
+WS --> BR : spec
+create SB
+BR -> SB : new SavedBuild(name, now, spec)
+BR -> BR : writeStorage()
+alt 書き込み失敗
+  BR --> SL : error
+  SL -> SL : showMessage("保存できませんでした")
+else 成功
+  BR --> SL : builds
+  SL -> SL : showList(builds)
+end
+deactivate BR
+deactivate SL
+end
+group 呼出
+U -> SL : 一覧から選ぶ
+activate SL
+SL -> BR : load(id)
+activate BR
+BR -> BR : readStorage(id)
+BR -> SB : getSpec()
+SB --> BR : saved.spec
+opt 車両が現在と異なる
+  BR -> VS : selectVehicle(saved.vehicleId)
+end
+BR -> CC : validate(saved.spec)
+CC --> BR : spec(置き換え後)
+BR -> WS : setCurrent(spec)
+BR -> HM : clear()
+BR -> RD : render()
+activate RD
+RD -> BV : display(svg)
+deactivate RD
+deactivate BR
+deactivate SL
+end
+@enduml

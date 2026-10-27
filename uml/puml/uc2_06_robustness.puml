@@ -1,0 +1,25 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-06 取り消し ロバストネス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "履歴管理\nHistoryManager" as HM
+entity "変更履歴\nEditCommand" as EC
+entity "作業状態\nWorkspace" as WS
+control "描画制御\nRenderer" as RD
+boundary "車両ビュー\nBikeView" as BV
+U -- CS : 1 元に戻す／1a やり直す
+CS --> HM : 1 取り消し要求
+HM --> EC : 2 直前の変更を取り出す
+HM --> WS : 3 変更前の仕様を適用
+HM --> RD : 5 再描画
+RD --> BV : 5 表示
+HM --> CS : 5 ボタン状態更新
+@enduml

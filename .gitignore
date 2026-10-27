@@ -1,0 +1,16 @@
+# PlantUML 本体(各自でダウンロードする)
+uml/plantuml.jar
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node(React版に移行したとき用)
+node_modules/
+dist/

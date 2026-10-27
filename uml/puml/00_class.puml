@@ -1,0 +1,223 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 60
+skinparam class {
+  BackgroundColor<<boundary>> #eef3ff
+  BackgroundColor<<control>> #fff6e5
+  BackgroundColor<<entity>> #eaf6ee
+  BorderColor #3b4250
+}
+hide empty members
+title 2Dカスタムガレージ クラス図
+
+package "バウンダリ" {
+class CustomizeScreen <<boundary>> {
+  +showBaseList(vehicles)
+  +buildShelf(slots)
+  +disableOptions(options)
+  +updateSheet(specs)
+  +updateButtons(canUndo, canRedo)
+  +showEditor()
+  +showMessage(text)
+  +confirmDiscard() : boolean
+}
+class BikeView <<boundary>> {
+  +display(svg)
+}
+class CompareView <<boundary>> {
+  +show(beforeSvg, afterSvg, diffs)
+  +setSlider(ratio)
+}
+class SaveListPanel <<boundary>> {
+  +showList(builds)
+  +showMessage(text)
+}
+class AdminScreen <<boundary>> {
+  +showPreview(svg)
+  +showErrors(errors)
+  +showResult(text)
+}
+class PdfDialog <<boundary>> {
+  +open()
+  +download(blob, fileName)
+  +showError(text)
+}
+}
+
+package "コントロール" {
+class VehicleSelector <<control>> {
+  +listVehicles() : BaseVehicle[]
+  +selectVehicle(id) : BaseVehicle
+}
+class CatalogManager <<control>> {
+  +importVehicle(file) : ValidationResult
+  +importPart(vehicleId, file) : ValidationResult
+  +commit()
+  -parse(file)
+  -validate(def)
+}
+class ConstraintChecker <<control>> {
+  +check(spec, slotId, partId) : CheckResult
+  +getDisabledOptions(spec) : Option[]
+  +validate(spec) : BuildSpec
+}
+class CustomizeController <<control>> {
+  +changePart(slotId, partId)
+  +changeColor(paintSlotId, color)
+  +applyPreset(presetId)
+}
+class HistoryManager <<control>> {
+  -undoStack : EditCommand[]
+  -redoStack : EditCommand[]
+  +push(cmd)
+  +undo()
+  +redo()
+  +clear()
+  +canUndo() : boolean
+  +canRedo() : boolean
+}
+class CompareController <<control>> {
+  +startCompare()
+  +endCompare()
+  -diff(before, after) : Diff[]
+}
+class BuildRepository <<control>> {
+  +save(name)
+  +load(id)
+  +list() : SavedBuild[]
+  +delete(id)
+  -writeStorage()
+  -readStorage(id)
+}
+class PdfExporter <<control>> {
+  +requestExport()
+  +export(options)
+  -svgToImage(svg)
+  -buildPdf() : Blob
+}
+class Renderer <<control>> {
+  +render()
+  +renderSvg(spec) : string
+  +renderPreview(target) : string
+}
+}
+
+package "エンティティ" {
+class Catalog <<entity>> {
+  +getVehicles() : BaseVehicle[]
+  +findVehicle(id) : BaseVehicle
+  +findPart(id) : Part
+  +exists(id) : boolean
+  +register(item)
+}
+class BaseVehicle <<entity>> {
+  -id : string
+  -name : string
+  -wheelbase : number
+  +getDefaultSpec() : BuildSpec
+  +getConstraints() : Constraint[]
+}
+class PartSlot <<entity>> {
+  -id : string
+  -name : string
+}
+class Part <<entity>> {
+  -id : string
+  -name : string
+  -weight : number
+  -price : number
+  -svgTemplate : string
+  +getSvgTemplate() : string
+  +getWeight() : number
+  +getInfo()
+}
+class PaintSlot <<entity>> {
+  -id : string
+  -name : string
+  -palette : Color[]
+}
+class Constraint <<entity>> {
+  -type : EXCLUDE | REQUIRE
+  -sourcePartId : string
+  -targetPartId : string
+  -autoResolve : boolean
+  -message : string
+  +isViolatedBy(spec) : boolean
+}
+class BuildSpec <<entity>> {
+  -vehicleId : string
+  -parts : Map<slotId, partId>
+  -colors : Map<paintSlotId, Color>
+  -lowerAmount : number
+  +withPart(slotId, partId) : BuildSpec
+  +withColor(paintSlotId, color) : BuildSpec
+  +clone() : BuildSpec
+  +calcSpecs()
+}
+class Workspace <<entity>> {
+  -vehicle : BaseVehicle
+  -current : BuildSpec
+  +getCurrent() : BuildSpec
+  +setCurrent(spec)
+}
+class EditCommand <<entity>> {
+  -before : BuildSpec
+  -after : BuildSpec
+  +getBefore() : BuildSpec
+  +getAfter() : BuildSpec
+}
+class SavedBuild <<entity>> {
+  -id : string
+  -name : string
+  -savedAt : Date
+  -spec : BuildSpec
+  +getSpec() : BuildSpec
+}
+}
+
+CustomizeScreen --> VehicleSelector
+CustomizeScreen --> CustomizeController
+CustomizeScreen --> HistoryManager
+CustomizeScreen --> CompareController
+CustomizeScreen --> PdfExporter
+SaveListPanel --> BuildRepository
+AdminScreen --> CatalogManager
+PdfDialog --> PdfExporter
+CompareView --> CompareController
+
+CustomizeController --> ConstraintChecker
+CustomizeController --> HistoryManager
+CustomizeController --> Renderer
+BuildRepository --> ConstraintChecker
+BuildRepository --> VehicleSelector
+CatalogManager --> Renderer
+CompareController --> Renderer
+PdfExporter --> Renderer
+Renderer --> BikeView
+CompareController --> CompareView
+
+VehicleSelector --> Catalog
+CatalogManager --> Catalog
+ConstraintChecker --> Constraint
+CustomizeController --> Workspace
+HistoryManager "1" o-- "0..*" EditCommand
+BuildRepository "1" --> "0..*" SavedBuild
+Renderer --> Workspace
+
+Catalog "1" *-- "1..*" BaseVehicle
+BaseVehicle "1" *-- "1..*" PartSlot
+PartSlot "1" *-- "1..*" Part
+BaseVehicle "1" *-- "1..*" PaintSlot
+BaseVehicle "1" *-- "0..*" Constraint
+Workspace "1" --> "1" BuildSpec : current
+EditCommand --> "2" BuildSpec : before/after
+SavedBuild "1" *-- "1" BuildSpec
+BuildSpec --> BaseVehicle
+@enduml

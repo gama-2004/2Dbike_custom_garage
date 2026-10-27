@@ -1,0 +1,37 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+
+left to right direction
+skinparam usecase {
+  BackgroundColor #f4f6fa
+  BorderColor #3b4250
+}
+title 2Dカスタムガレージ ユースケース図
+actor "利用者" as U
+actor "管理者" as A
+rectangle "2Dカスタムガレージ" {
+  usecase "2-01 車両ベース選択" as UC01
+  usecase "2-05 パーツ・塗装選択" as UC05
+  usecase "2-04 組み合わせ制約" as UC04
+  usecase "2-06 取り消し" as UC06
+  usecase "2-07 ビフォーアフター比較" as UC07
+  usecase "2-08 仕様保存・呼出" as UC08
+  usecase "2-09 PDF保存" as UC09
+  usecase "2-02 ベース車両追加" as UC02
+  usecase "2-03 パーツ追加" as UC03
+}
+U -- UC01
+U -- UC05
+U -- UC06
+U -- UC07
+U -- UC08
+U -- UC09
+UC02 -- A
+UC03 -- A
+UC05 ..> UC04 : <<include>>
+UC08 ..> UC04 : <<include>>
+@enduml

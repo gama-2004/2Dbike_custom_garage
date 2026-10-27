@@ -1,0 +1,51 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+hide footbox
+title 2-07 ビフォーアフター比較 シーケンス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+boundary "比較画面\nCompareView" as CV
+control "比較制御\nCompareController" as CP
+control "描画制御\nRenderer" as RD
+entity "作業状態\nWorkspace" as WS
+entity "ベース車両\nBaseVehicle" as VH
+entity "パーツ\nPart" as PT
+U -> CS : 比較を押す
+activate CS
+CS -> CP : startCompare()
+activate CP
+CP -> WS : getCurrent()
+WS --> CP : after
+CP -> VH : getDefaultSpec()
+VH --> CP : before
+CP -> RD : renderSvg(before)
+RD --> CP : beforeSvg
+CP -> RD : renderSvg(after)
+RD --> CP : afterSvg
+CP -> CP : diff(before, after)
+loop 変更された部位
+  CP -> PT : getWeight()
+  PT --> CP : weight
+end
+CP -> CV : show(beforeSvg, afterSvg, diffs)
+deactivate CP
+deactivate CS
+activate CV
+opt 重ねて表示
+  U -> CV : スライダーを動かす
+  CV -> CV : setSlider(ratio)
+end
+U -> CV : 閉じる
+CV -> CP : endCompare()
+deactivate CV
+activate CP
+CP -> CS : showEditor()
+deactivate CP
+@enduml

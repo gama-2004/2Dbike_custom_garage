@@ -1,0 +1,31 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-08 仕様保存・呼出 ロバストネス図
+actor "利用者" as U
+boundary "保存一覧\nSaveListPanel" as SL
+control "保存管理\nBuildRepository" as BR
+entity "作業状態\nWorkspace" as WS
+entity "保存仕様\nSavedBuild" as SB
+control "ベース選択制御\nVehicleSelector" as VS
+control "制約判定\nConstraintChecker" as CC
+control "履歴管理\nHistoryManager" as HM
+control "描画制御\nRenderer" as RD
+boundary "車両ビュー\nBikeView" as BV
+U -- SL : 1 保存／A1 選ぶ
+SL --> BR : 1 保存要求／A1 呼出要求
+BR --> WS : 2 現在の仕様取得／A5 仕様を設定
+BR --> SB : 2 生成・3 書き込み／A2 読み込み
+BR --> SL : 4 一覧更新／3a エラー表示
+BR --> VS : A3 車両切替
+BR --> CC : A4 整合性確認
+BR --> HM : A5 履歴消去
+BR --> RD : A6 再描画
+RD --> BV : A6 表示
+@enduml

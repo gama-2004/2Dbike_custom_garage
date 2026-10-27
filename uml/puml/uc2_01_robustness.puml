@@ -1,0 +1,34 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-01 車両ベース選択 ロバストネス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "ベース選択制御\nVehicleSelector" as VS
+entity "カタログ\nCatalog" as CA
+entity "ベース車両\nBaseVehicle" as VH
+entity "作業状態\nWorkspace" as WS
+control "履歴管理\nHistoryManager" as HM
+entity "変更履歴\nEditCommand" as EC
+control "描画制御\nRenderer" as RD
+entity "パーツ\nPart" as PT
+boundary "車両ビュー\nBikeView" as BV
+U -- CS : 1 画面を開く／3 車両を選ぶ
+CS --> VS : 2 一覧要求／3 選択通知
+VS --> CA : 2 一覧取得
+VS --> VH : 4 標準仕様取得
+VS --> WS : 4 現在の仕様に設定
+VS --> HM : 5 履歴消去
+HM --> EC : 5 削除
+VS --> RD : 6 描画要求
+RD --> WS : 6 仕様取得
+RD --> PT : 6 描画データ取得
+RD --> BV : 6 表示
+VS --> CS : 6 パーツ棚を再構成
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #3b4250
+skinparam defaultFontSize 13
+left to right direction
+skinparam nodesep 30
+skinparam ranksep 70
+title 2-05 パーツ・塗装選択 ロバストネス図
+actor "利用者" as U
+boundary "カスタム画面\nCustomizeScreen" as CS
+control "カスタム制御\nCustomizeController" as CU
+control "制約判定\nConstraintChecker" as CC
+control "履歴管理\nHistoryManager" as HM
+entity "変更履歴\nEditCommand" as EC
+entity "作業状態\nWorkspace" as WS
+control "描画制御\nRenderer" as RD
+entity "パーツ\nPart" as PT
+boundary "車両ビュー\nBikeView" as BV
+entity "仕様\nBuildSpec" as SP
+U -- CS : 1 パーツ・色を選ぶ
+CS --> CU : 1 変更要求
+CU --> CC : 2 制約判定(2-04)
+CU --> HM : 3 履歴に記録
+HM --> EC : 3 生成・保持
+CU --> WS : 4 仕様を更新
+CU --> RD : 5 再描画
+RD --> PT : 5 描画データ取得
+RD --> BV : 5 表示
+CU --> SP : 5 諸元計算
+CU --> CS : 5 ビルドシート更新／2a 理由表示
+@enduml
