@@ -42,6 +42,9 @@ GitHub Pages で公開する場合は、リポジトリの Settings → Pages �
 ├── app/
 │   └── index.html          アプリ本体(プロトタイプ、1ファイル構成)
 ├── docs/
+│   ├── 01_ガントチャート.xlsx                 工程表(担当・日程・進捗)
+│   ├── 04_2026_基本設計書_R4S1_ARMY.docx    基本設計書(サーバー＋DB構成、10機能)
+│   ├── sql/schema.sql      テーブル作成SQL(MySQL 8.4、基本設計書の別紙3)
 │   ├── requirements.md     必要機能一覧(全25機能、非機能要件、評価方法)
 │   ├── tech-selection.md   使用技術の検討(React)
 │   ├── tech-selection.xlsx 同上の表(Excel)
