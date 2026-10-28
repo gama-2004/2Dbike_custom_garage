@@ -6,7 +6,23 @@
 
 ## 使い方
 
-`app/index.html` をブラウザで開くだけで動く(ビルドやインストールは不要)。
+### React 版(`web/`)
+
+React＋TypeScript＋Vite で作り直した版。Node.js 22 以降が必要。
+
+```
+cd web
+npm install      # 初回だけ
+npm run dev      # 開発用サーバー(表示された URL をブラウザで開く)
+npm test         # 単体テスト
+npm run build    # 公開用のファイルを web/dist/ に作る
+```
+
+`web/dist/` は相対パスで作るので、GitHub Pages などどのフォルダに置いても動く。
+
+### プロトタイプ(`app/`)
+
+`app/index.html` をブラウザで開くだけで動く(ビルドやインストールは不要)。React 版と見た目・動きは同じ。React 版が育ったら役目を終える。
 
 GitHub Pages で公開する場合は、リポジトリの Settings → Pages で公開元のブランチを選ぶと、`https://<ユーザー名>.github.io/<リポジトリ名>/app/` で開ける。
 
@@ -39,8 +55,16 @@ GitHub Pages で公開する場合は、リポジトリの Settings → Pages �
 
 ```
 .
+├── web/                    React 版(React 19＋TypeScript＋Vite＋Zustand)
+│   └── src/
+│       ├── catalog/        車両データ(パーツ・色・プリセット・パーツ棚の並び・制約)
+│       ├── render/         車両図の描画(仕様 → SVG)
+│       ├── logic/          組み合わせ制約の判定、ブラウザ保存
+│       ├── store/          作業状態(現在の仕様)
+│       ├── repo/           仕様の保存・呼出(今はブラウザ内、あとで API に差し替え)
+│       └── components/     画面部品(車両ビュー、ビルドシート、パーツ棚、保存一覧)
 ├── app/
-│   └── index.html          アプリ本体(プロトタイプ、1ファイル構成)
+│   └── index.html          プロトタイプ(1ファイル構成)
 ├── docs/
 │   ├── 01_ガントチャート.xlsx                 工程表(担当・日程・進捗)
 │   ├── 04_2026_基本設計書_R4S1_ARMY.docx    基本設計書(サーバー＋DB構成、10機能)
@@ -63,8 +87,8 @@ GitHub Pages で公開する場合は、リポジトリの Settings → Pages �
 
 ## 今後の予定
 
-- React＋TypeScript＋Vite での作り直し([使用技術の検討](docs/tech-selection.md))
-- 未実装の機能(2-02、2-03、2-06、2-07、2-09)の実装
+- React 版での未実装機能の追加と、サーバー(API・MySQL)の構築([基本設計書](docs/04_2026_基本設計書_R4S1_ARMY.docx))
+- 未実装の機能(2-02、2-03、2-06、2-07、2-09、2-10)の実装
 - 評価実験の準備([必要機能一覧](docs/requirements.md#研究としての評価))
 
 ## 注意
