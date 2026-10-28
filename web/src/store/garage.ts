@@ -8,8 +8,19 @@ export const KEY_CURRENT = 'ss-garage-current';
 
 type Specs = Record<VehicleId, Spec>;
 
+/** 比較画面のビフォー。null ならノーマル(標準仕様) */
+export interface CompareRef {
+  /** 保存仕様の番号 */
+  n: number;
+  label: string;
+  base: VehicleId;
+  spec: Spec;
+}
+
 interface GarageState {
   base: VehicleId;
+  compareRef: CompareRef | null;
+  setCompareRef(ref: CompareRef | null): void;
   /** 車両ごとの現在の仕様(車両を切り替えても、それぞれの組み方を覚えておく) */
   specs: Specs;
   switchBase(id: VehicleId): void;
@@ -39,6 +50,8 @@ export const useGarage = create<GarageState>()((set, get) => {
   const update = (spec: Spec) => set((st) => ({ specs: { ...st.specs, [st.base]: spec } }));
   return {
     ...initial(),
+    compareRef: null,
+    setCompareRef: (ref) => set({ compareRef: ref }),
     switchBase: (id) => set({ base: id }),
     setValue: (key, value) => {
       const { base, specs } = get();

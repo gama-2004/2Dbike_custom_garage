@@ -62,6 +62,10 @@ export interface Vehicle {
   shelf: readonly ShelfSection[];
   /** 図の data-part → パーツ棚の区画 id */
   partMap: Record<string, string>;
+  /** パーツの参考価格(円)。標準パーツと表にないものは 0 */
+  prices: Record<string, Record<string, number>>;
+  /** サムネイルで切り抜く範囲(部位ごとの SVG viewBox) */
+  thumbs: Record<string, string>;
   styleName(s: Spec): string;
   weight(s: Spec): number;
   sheet(s: Spec): SheetData;

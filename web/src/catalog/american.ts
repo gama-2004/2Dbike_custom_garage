@@ -84,6 +84,28 @@ export const american: Vehicle = {
     wheel: 'sec-wheel', frame: 'sec-frameColor', engine: 'sec-engine', exhaust: 'sec-exhaust', seat: 'sec-seat', paint: 'sec-paint', light: 'sec-light',
     bar: 'sec-bar', sissy: 'sec-sissy', bags: 'sec-bags', shield: 'sec-shield', frontFender: 'sec-frontFender', rearFender: 'sec-rearFender', fork: 'sec-light',
   },
+  // 仮の参考価格(実在の製品価格ではない)
+  prices: {
+    tank: { fat: 68000, peanut: 54000 },
+    seat: { solo: 32800, kq: 45800 },
+    sissy: { short: 18800, tall: 26800 },
+    bar: { ape: 42000, drag: 22000 },
+    shield: { short: 24800, tall: 34800 },
+    light: { bullet: 21800, twin: 38000 },
+    livery: { solid: 30000, flame: 98000, pinstripe: 58000 },
+    exhaust: { fishtail: 108000, drag: 86000 },
+    frontFender: { short: 16800, none: 5000 },
+    rearFender: { bobbed: 29800 },
+    bags: { leather: 64800 },
+    wheel: { cast: 128000, disc: 158000 },
+    engine: { black: 78000 },
+  },
+  thumbs: {
+    tank: '380 130 200 110', seat: '220 150 200 110', sissy: '190 90 130 180', bar: '450 20 130 150',
+    shield: '520 40 110 170', light: '540 140 100 110', livery: '370 130 220 120', exhaust: '110 230 320 240',
+    frontFender: '530 220 190 120', rearFender: '80 220 210 130', bags: '140 220 150 100', wheel: '540 240 180 180',
+    engine: '340 200 190 180',
+  },
   styleName(s) {
     if (s.bar === 'ape') return 'チョッパー';
     if (s.rearFender === 'bobbed' && s.seat === 'solo') return 'ボバー';

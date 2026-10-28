@@ -89,6 +89,24 @@ export const supersport: Vehicle = {
     wheel: 'sec-wheel', caliper: 'sec-fork', fork: 'sec-fork', frame: 'sec-frameColor', engine: 'sec-cowl', exhaust: 'sec-exhaust',
     seat: 'sec-seat', paint: 'sec-paint', light: 'sec-light', bar: 'sec-bar', mirror: 'sec-mirror', tail: 'sec-tail', screen: 'sec-screen',
   },
+  // 仮の参考価格(実在の製品価格ではない)
+  prices: {
+    cowl: { half: 38000, naked: 52000 },
+    screen: { low: 9800, tall: 14800 },
+    light: { round: 28000, square: 26000 },
+    livery: { solid: 30000, stripe: 45000, racing: 68000 },
+    bar: { bar: 32000 },
+    mirror: { barend: 12800, none: 3000 },
+    exhaust: { slipon: 89800, short: 64800, centerup: 128000 },
+    tail: { fenderless: 19800 },
+    seat: { single: 24800 },
+    wheel: { ten: 98000, forged: 248000 },
+  },
+  thumbs: {
+    cowl: '380 110 260 250', screen: '480 50 150 130', light: '520 130 120 100', livery: '170 100 480 280',
+    bar: '450 95 112 84', mirror: '445 72 148 111', exhaust: '235 190 264 198', tail: '180 130 190 140',
+    seat: '230 140 200 110', wheel: '505 240 170 170',
+  },
   styleName(s) {
     if (s.cowl === 'naked') return 'ストリートファイター';
     if (s.zekken && s.mirror === 'none') return 'サーキット仕様';

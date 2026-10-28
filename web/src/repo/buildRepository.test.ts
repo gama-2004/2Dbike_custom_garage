@@ -17,6 +17,15 @@ test('保存すると新しい順に並び、番号が増える。削除もで�
   expect(JSON.parse(mem.get(KEY_SAVES)!)).toHaveLength(1);
 });
 
+test('名前を付けて保存し、あとから変えられる(空の名前では変えない)', async () => {
+  const repo = localBuildRepository();
+  await repo.save('ss', {}, '  通勤カスタム案 ');
+  expect((await repo.list())[0].name).toBe('通勤カスタム案');
+  await repo.rename(1, 'ツーリング用');
+  await repo.rename(1, '   ');
+  expect((await repo.list())[0].name).toBe('ツーリング用');
+});
+
 test('最大20件まで保存する', async () => {
   const repo = localBuildRepository();
   for (let i = 0; i < 22; i++) await repo.save('ss', {});

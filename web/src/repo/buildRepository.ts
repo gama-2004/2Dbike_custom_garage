@@ -13,7 +13,9 @@ export interface SavedBuild {
 /** 保存管理(BuildRepository)。いまはブラウザ内に保存する。サーバー版は同じ形で API を呼ぶ実装に差し替える。 */
 export interface BuildRepository {
   list(): Promise<SavedBuild[]>;
-  save(base: VehicleId, spec: Spec): Promise<SavedBuild[]>;
+  /** name を省略すると「ビルド #番号」 */
+  save(base: VehicleId, spec: Spec, name?: string): Promise<SavedBuild[]>;
+  rename(n: number, name: string): Promise<SavedBuild[]>;
   remove(n: number): Promise<SavedBuild[]>;
 }
 
@@ -26,11 +28,16 @@ export function localBuildRepository(now: () => Date = () => new Date()): BuildR
     async list() {
       return read();
     },
-    async save(base, spec) {
+    async save(base, spec, name) {
       const list = read();
       const n = list.length ? Math.max(...list.map((x) => x.n)) + 1 : 1;
       const d = now();
-      const next = [{ n, base, name: `ビルド #${n}`, date: `${d.getMonth() + 1}/${d.getDate()}`, state: { ...spec } }, ...list].slice(0, MAX_SAVES);
+      const next = [{ n, base, name: name?.trim() || `ビルド #${n}`, date: `${d.getMonth() + 1}/${d.getDate()}`, state: { ...spec } }, ...list].slice(0, MAX_SAVES);
+      storeJSON(KEY_SAVES, next);
+      return next;
+    },
+    async rename(n, name) {
+      const next = read().map((x) => (x.n === n && name.trim() ? { ...x, name: name.trim() } : x));
       storeJSON(KEY_SAVES, next);
       return next;
     },
