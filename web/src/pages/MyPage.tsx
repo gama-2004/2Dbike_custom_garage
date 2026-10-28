@@ -15,6 +15,7 @@ export function MyPage() {
   const switchBase = useGarage((st) => st.switchBase);
   const setCompareRef = useGarage((st) => st.setCompareRef);
   const [editing, setEditing] = useState<{ n: number; name: string } | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   return (
     <div className="page">
@@ -48,8 +49,15 @@ export function MyPage() {
                   <button type="button" className="btn primary" onClick={() => { loadBuild(id, b.state); navigate('custom'); }}>読み込む</button>
                   <button type="button" className="btn" onClick={() => { switchBase(id); setCompareRef({ n: b.n, label: b.name, base: id, spec: b.state }); navigate('compare'); }}>比較</button>
                   <button type="button" className="btn ghost" onClick={() => setEditing({ n: b.n, name: b.name })}>名前を変更</button>
-                  <button type="button" className="btn ghost danger" aria-label={`${b.name}を削除`} onClick={() => { if (confirm(`「${b.name}」を削除します。よろしいですか?`)) remove(b.n); }}>削除</button>
+                  <button type="button" className="btn ghost danger" aria-label={`${b.name}を削除`} onClick={() => setDeleting(b.n)}>削除</button>
                 </div>
+                {deleting === b.n && (
+                  <div className="confirm" role="alertdialog" aria-label="削除の確認">
+                    <span>「{b.name}」を削除します。元に戻せません。</span>
+                    <button type="button" className="btn danger" onClick={() => { remove(b.n); setDeleting(null); }}>削除する</button>
+                    <button type="button" className="btn ghost" onClick={() => setDeleting(null)}>やめる</button>
+                  </div>
+                )}
               </article>
             );
           })}
