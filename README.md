@@ -39,7 +39,7 @@ Node.js＋Express＋MySQL のサーバー。車両・パーツのカタログと
 
 **初回の準備(Windows)**
 
-1. MySQL 8.4 LTS を入れる。https://dev.mysql.com/downloads/installer/ の MySQL Installer で「Server only」を選び、途中で root のパスワードを決める(控えておく)。
+1. MySQL 8.4 LTS を入れる。https://dev.mysql.com/downloads/mysql/ で Version に「8.4.x LTS」、OS に「Microsoft Windows」を選び、「Windows (x86, 64-bit), MSI Installer」をダウンロードする(ログインを求められたら「No thanks, just start my download.」)。インストール後に開く MySQL Configurator で root のパスワードを決める(控えておく)。「MySQL Installer」のページから入るのは 8.0(サポート終了)なので使わない。
 2. `server` フォルダで、設定ファイルを作る。
    ```
    cd server
