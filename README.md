@@ -53,7 +53,7 @@ Node.js＋Express＋MySQL のサーバー。車両・パーツのカタログと
    ```
    「unknown plugin auth_gssapi_client」と出たら、3306番では MySQL ではなく MariaDB(XAMPP など)が動いている。MySQL 8.4 を別の番号(3307 など)で動かし、`.env` の `DB_PORT` をその番号にする。このアプリは MySQL 8.4 の書き方を使うので、MariaDB では動かない。
 
-   **インストールできないとき(学校の PC など)** MySQL 8.4 の「Windows (x86, 64-bit), ZIP Archive」を `C:\Users\<ユーザー名>\mysql84` に展開し、`server` フォルダで `mysql-local.cmd` を実行する(開いたままにする)。3307番で動き、root のパスワードは空。`.env` は `DB_PORT=3307`、`DB_PASSWORD=`(空)にする。
+   **インストールできないとき(学校の PC など)** MySQL 8.4 の「Windows (x86, 64-bit), ZIP Archive」を `C:\Users\<ユーザー名>\mysql84` に展開し、`server` フォルダで `mysql-local.cmd` を実行する(MSI で `C:\Program Files\MySQL\MySQL Server 8.4` に入っていれば ZIP は不要)(開いたままにする)。3307番で動き、root のパスワードは空。`.env` は `DB_PORT=3307`、`DB_PASSWORD=`(空)にする。
 
 **毎回の起動(開発)** コマンドプロンプトを2つ開く。
 
