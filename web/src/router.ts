@@ -1,12 +1,16 @@
 import { useSyncExternalStore } from 'react';
 
-/** 画面の切り替え。URL の #custom のように # 以降で画面を持つので、GitHub Pages でもそのまま動く(#/custom の形も読める) */
-export type Route = 'top' | 'select' | 'custom' | 'compare' | 'mypage';
-const ROUTES: Route[] = ['top', 'select', 'custom', 'compare', 'mypage'];
+/**
+ * 画面の切り替え。URL の #custom のように # 以降で画面を持つので、GitHub Pages でもそのまま動く(#/custom の形も読める)。
+ * 管理画面は、基本設計書どおり /admin でも開ける
+ */
+export type Route = 'top' | 'select' | 'custom' | 'compare' | 'mypage' | 'admin';
+const ROUTES: Route[] = ['top', 'select', 'custom', 'compare', 'mypage', 'admin'];
 
 const current = (): Route => {
   const r = location.hash.replace(/^#\/?/, '') as Route;
-  return ROUTES.includes(r) ? r : 'top';
+  if (ROUTES.includes(r)) return r;
+  return /\/admin\/?$/.test(location.pathname) ? 'admin' : 'top';
 };
 
 const subscribe = (cb: () => void) => {

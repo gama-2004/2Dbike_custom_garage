@@ -24,12 +24,15 @@ export interface ShelfSection {
   items: ShelfItem[];
 }
 
-/** 組み合わせ制約: when の条件を満たすと、slot のパーツは選べなくなる(仕様の値は残すが図には出ない) */
-export interface Constraint {
-  when: { key: string; value: string };
-  disables: string;
-  message: string;
-}
+/**
+ * 組み合わせ制約。when の条件を満たすと、
+ * - disables の部位(values があればそのパーツだけ)は選べなくなる。部位全体のときは仕様の値は残すが図には出ない
+ *   autoResolve なら、相手が付いていても when のパーツを選べ、そのとき相手は外れる
+ * - requires があれば、そのパーツも一緒に付く
+ */
+export type Constraint =
+  | { when: { key: string; value: string }; disables: string; values?: readonly string[]; autoResolve?: boolean; message: string; requires?: undefined }
+  | { when: { key: string; value: string }; requires: { key: string; value: string }; message: string; disables?: undefined };
 
 export interface SheetData {
   rows: [label: string, value: string][];
@@ -42,7 +45,8 @@ export interface Preset {
   spec: Spec;
 }
 
-export type VehicleId = 'ss' | 'us';
+/** 車両コード(V001 など) */
+export type VehicleId = string;
 
 /** ベース車両(BaseVehicle)。描画処理(draw)もここに持つ。 */
 export interface Vehicle {

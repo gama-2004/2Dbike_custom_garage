@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
-import { VEHICLES, VEHICLE_IDS } from '../catalog';
+import { BUILTIN_VEHICLES as VEHICLES } from '../catalog';
+
+const VEHICLE_IDS = Object.keys(VEHICLES);
 
 test.each(VEHICLE_IDS)('%s: すべてのプリセットが描画でき、クリックできる部位が棚に対応している', (id) => {
   const v = VEHICLES[id];

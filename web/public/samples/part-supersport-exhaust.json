@@ -1,0 +1,27 @@
+{
+  "slot": {
+    "code": "exhaust"
+  },
+  "part": {
+    "code": "dualblack",
+    "name": "デュアルアップ(ブラック)",
+    "weight_diff_kg": -2.8,
+    "price_yen": 142000,
+    "svg": "<path d=\"M478 300 C470 332 420 334 392 318 C372 302 352 262 324 242\" fill=\"none\" stroke=\"#2b2d31\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M338 226 L250 196 L244 214 L330 246 Z\" fill=\"#1d1e21\"/><path d=\"M332 246 L246 220 L242 236 L326 262 Z\" fill=\"#26282c\"/><ellipse cx=\"246\" cy=\"205\" rx=\"3.5\" ry=\"9.5\" fill=\"{{accent}}\"/><ellipse cx=\"243\" cy=\"228\" rx=\"3.5\" ry=\"8\" fill=\"{{accent}}\"/>"
+  },
+  "constraints": [
+    {
+      "type": "EXCLUDE",
+      "source": {
+        "slot": "exhaust",
+        "part": "dualblack"
+      },
+      "target": {
+        "slot": "seat",
+        "part": "tandem"
+      },
+      "auto_resolve": true,
+      "message": "デュアルアップマフラーはタンデムシートと付けられないため、シングルシートカウルに替えます。"
+    }
+  ]
+}

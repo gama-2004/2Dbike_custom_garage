@@ -19,11 +19,16 @@ export function SummaryPanel() {
   const { specs } = vehicle.sheet(spec);
   const paint = ['main', 'sub', 'accent'].filter((k) => k in vehicle.swatches);
 
+  const notice = useGarage((st) => st.notice);
   const onSave = async () => {
-    await save(base, spec, name);
-    setName('');
-    setMsg('マイページに保存しました。');
-    setTimeout(() => setMsg(''), 2500);
+    try {
+      await save(base, spec, name);
+      setName('');
+      setMsg('マイページに保存しました。');
+    } catch (e) {
+      setMsg(`保存できませんでした。${e instanceof Error ? e.message : ''}`);
+    }
+    setTimeout(() => setMsg(''), 4000);
   };
 
   return (
@@ -69,7 +74,7 @@ export function SummaryPanel() {
         <input className="text" type="text" maxLength={50} placeholder="保存名(省略可)" aria-label="保存名" value={name} onChange={(e) => setName(e.target.value)} />
         <button type="button" className="btn" onClick={onSave}>保存する</button>
       </div>
-      <p className="msg" role="status">{msg}</p>
+      <p className="msg" role="status">{msg || notice}</p>
       <button type="button" className="btn ghost block" onClick={reset}>リセット(ノーマルに戻す)</button>
     </aside>
   );

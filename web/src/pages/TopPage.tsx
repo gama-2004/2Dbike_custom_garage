@@ -1,4 +1,4 @@
-import { VEHICLES, VEHICLE_IDS } from '../catalog';
+import { useCatalog } from '../catalog';
 import { BikeSvg } from '../components/BikeSvg';
 import { totalPrice, yen } from '../logic/price';
 import { navigate } from '../router';
@@ -7,8 +7,10 @@ import { useGarage } from '../store/garage';
 /** トップページ: サイトの概要、車種選択への入口、おすすめのカスタム例 */
 export function TopPage() {
   const loadBuild = useGarage((st) => st.loadBuild);
-  const ss = VEHICLES.ss;
-  const hero = { ...ss.defaults, ...ss.presets[2].spec };
+  const vehicles = useCatalog((c) => c.vehicles);
+  const ids = useCatalog((c) => c.ids);
+  const ss = vehicles.V001 ?? vehicles[ids[0]];
+  const hero = { ...ss.defaults, ...(ss.presets[2] ?? ss.presets[0])?.spec };
   return (
     <div className="page">
       <section className="hero panel">
@@ -21,14 +23,14 @@ export function TopPage() {
             <button type="button" className="btn lg" onClick={() => navigate('custom')}>続きからカスタム</button>
           </div>
         </div>
-        <BikeSvg vehicle={ss} spec={hero} className="hero-bike" label="カスタム例: ストリートファイター" />
+        <BikeSvg vehicle={ss} spec={hero} className="hero-bike" label={`カスタム例: ${ss.styleName(hero)}`} />
       </section>
 
       <h2 className="section-title">おすすめのカスタム例</h2>
       <div className="card-grid">
-        {VEHICLE_IDS.flatMap((id) =>
-          VEHICLES[id].presets.slice(1).map((p) => {
-            const v = VEHICLES[id];
+        {ids.flatMap((id) =>
+          vehicles[id].presets.slice(1).map((p) => {
+            const v = vehicles[id];
             const spec = { ...v.defaults, ...p.spec };
             return (
               <button key={`${id}-${p.name}`} type="button" className="card" onClick={() => { loadBuild(id, p.spec); navigate('custom'); }}>
@@ -43,7 +45,7 @@ export function TopPage() {
 
       <h2 className="section-title">使い方</h2>
       <ol className="steps">
-        <li><b>車種を選ぶ</b><span>スーパースポーツとアメリカンから、カスタムの土台を選びます。</span></li>
+        <li><b>車種を選ぶ</b><span>スーパースポーツやアメリカンなどから、カスタムの土台を選びます。</span></li>
         <li><b>パーツと色を組み替える</b><span>部位ごとにパーツを選ぶと、図と合計金額がすぐに変わります。車体をクリックしても選べます。</span></li>
         <li><b>比べて、保存する</b><span>ノーマルと並べて変更点を確かめ、気に入った組み方はマイページに保存できます。</span></li>
       </ol>

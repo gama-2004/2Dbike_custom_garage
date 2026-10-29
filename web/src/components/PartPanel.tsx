@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { VEHICLES, VEHICLE_IDS } from '../catalog';
+import { useCatalog } from '../catalog';
 import type { ShelfItem, ShelfSection, Spec, Vehicle } from '../catalog/types';
-import { disabledSlots } from '../logic/constraints';
+import { disabledOptions, disabledSlots } from '../logic/constraints';
 import { yen } from '../logic/price';
 import { useCurrent, useGarage } from '../store/garage';
 import { BikeSvg } from './BikeSvg';
@@ -12,18 +12,22 @@ const ON_OFF = [['on', 'あり'], ['off', 'なし']] as const;
 /** 部位の選択肢を、そのパーツを付けた図の切り抜きで並べる */
 function PartGrid({ vehicle, spec, slot, reason }: { vehicle: Vehicle; spec: Spec; slot: string; reason?: string }) {
   const setValue = useGarage((st) => st.setValue);
+  const off = disabledOptions(vehicle, spec);
+  const why = vehicle.parts[slot].options.map(([v]) => off.get(`${slot}:${v}`)).find(Boolean);
   return (
     <>
       <div className="part-grid" role="group" aria-label={vehicle.parts[slot].label}>
         {vehicle.parts[slot].options.map(([value, label]) => {
           const price = vehicle.prices[slot]?.[value] ?? 0;
+          const blocked = off.get(`${slot}:${value}`);
           return (
             <button
               key={value}
               type="button"
               className="part-card"
               aria-pressed={spec[slot] === value}
-              disabled={!!reason}
+              disabled={!!reason || !!blocked}
+              title={blocked}
               onClick={() => setValue(slot, value)}
             >
               <BikeSvg vehicle={vehicle} spec={{ ...spec, [slot]: value }} viewBox={vehicle.thumbs[slot]} className="part-thumb" />
@@ -33,7 +37,7 @@ function PartGrid({ vehicle, spec, slot, reason }: { vehicle: Vehicle; spec: Spe
           );
         })}
       </div>
-      {reason && <p className="note">{reason}</p>}
+      {(reason || why) && <p className="note">{reason ?? why}</p>}
     </>
   );
 }
@@ -112,16 +116,18 @@ function VehicleTab() {
   const specs = useGarage((st) => st.specs);
   const switchBase = useGarage((st) => st.switchBase);
   const applyPreset = useGarage((st) => st.applyPreset);
-  const v = VEHICLES[base];
+  const vehicles = useCatalog((c) => c.vehicles);
+  const ids = useCatalog((c) => c.ids);
+  const v = vehicles[base] ?? vehicles[ids[0]];
   return (
     <div className="vehicle-list">
-      {VEHICLE_IDS.map((id) => {
-        const v = VEHICLES[id];
+      {ids.map((id) => {
+        const x = vehicles[id];
         return (
           <button key={id} type="button" className="vehicle-card" aria-pressed={id === base} onClick={() => switchBase(id)}>
-            <BikeSvg vehicle={v} spec={specs[id]} className="vehicle-thumb" />
-            <span className="vehicle-name">{v.label}</span>
-            <span className="vehicle-meta">ホイールベース {v.wheelbase} mm</span>
+            <BikeSvg vehicle={x} spec={{ ...x.defaults, ...specs[id] }} className="vehicle-thumb" />
+            <span className="vehicle-name">{x.label}</span>
+            <span className="vehicle-meta">ホイールベース {x.wheelbase} mm</span>
           </button>
         );
       })}

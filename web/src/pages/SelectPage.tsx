@@ -1,4 +1,4 @@
-import { VEHICLES, VEHICLE_IDS } from '../catalog';
+import { useCatalog } from '../catalog';
 import { BikeSvg } from '../components/BikeSvg';
 import { navigate } from '../router';
 import { useGarage } from '../store/garage';
@@ -7,13 +7,15 @@ import { useGarage } from '../store/garage';
 export function SelectPage() {
   const base = useGarage((st) => st.base);
   const switchBase = useGarage((st) => st.switchBase);
+  const vehicles = useCatalog((c) => c.vehicles);
+  const ids = useCatalog((c) => c.ids);
   return (
     <div className="page">
       <h1 className="page-title">車種を選択</h1>
-      <p className="lead">カスタムの土台にするベース車両を選んでください。どちらもジャンルを参考にしたオリジナルデザインです。</p>
+      <p className="lead">カスタムの土台にするベース車両を選んでください。どの車両も、ジャンルを参考にしたオリジナルデザインです。</p>
       <div className="vehicle-grid">
-        {VEHICLE_IDS.map((id) => {
-          const v = VEHICLES[id];
+        {ids.map((id) => {
+          const v = vehicles[id];
           const { specs } = v.sheet(v.defaults);
           return (
             <button key={id} type="button" className="card vehicle-big" aria-pressed={id === base} onClick={() => { switchBase(id); navigate('custom'); }}>
