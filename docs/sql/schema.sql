@@ -1,5 +1,6 @@
 -- 2Dカスタムガレージ テーブル作成SQL(MySQL 8.4 LTS)
 -- 基本設計書「8. データベース設計」と対応する。文字コードは utf8mb4。
+-- server の `npm run db:init` がこのファイルを実行し、初期データ(組み込みの2車種と管理者)を入れる。
 
 CREATE DATABASE IF NOT EXISTS custom_garage
   DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_ja_0900_as_cs;
@@ -16,6 +17,8 @@ CREATE TABLE T_vehicles (
   ground_clearance_mm SMALLINT     NOT NULL COMMENT '標準の最低地上高(mm)',
   base_weight_kg      DECIMAL(5,1) NOT NULL COMMENT '標準の車両重量(kg)',
   lower_max_mm        TINYINT      NOT NULL DEFAULT 20 COMMENT 'ローダウン量の上限(mm)',
+  renderer            VARCHAR(20)  NOT NULL DEFAULT 'template' COMMENT '描画方法(supersport/american=組み込み、template=定義ファイルのSVG)',
+  base_svg            MEDIUMTEXT   NULL     COMMENT '車体の描画データ(renderer が template のとき)',
   default_spec_id     INT          NULL     COMMENT '標準仕様(T_build_specs)',
   is_active           TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '公開フラグ',
   created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '登録日時',
@@ -44,7 +47,7 @@ CREATE TABLE T_parts (
   name           VARCHAR(50)  NOT NULL COMMENT 'パーツ名',
   weight_diff_kg DECIMAL(4,1) NOT NULL DEFAULT 0 COMMENT '標準パーツとの重量差(kg)',
   price_yen      INT          NULL     COMMENT '参考価格(円)',
-  svg_template   MEDIUMTEXT   NOT NULL COMMENT '描画データ(SVG)',
+  svg_template   MEDIUMTEXT   NOT NULL COMMENT '描画データ(SVG)。組み込みの車両の標準パーツは空',
   is_active      TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '公開フラグ',
   created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '登録日時',
   PRIMARY KEY (part_id),
@@ -98,6 +101,7 @@ CREATE TABLE T_build_specs (
   vehicle_id INT      NOT NULL COMMENT '車両ID',
   lower_mm   TINYINT  NOT NULL DEFAULT 0 COMMENT 'ローダウン量(mm)',
   number_no  TINYINT  NULL     COMMENT 'ゼッケン番号(0〜99、なしはNULL)',
+  options_json JSON   NULL     COMMENT 'その他のオン・オフ(リムストライプ、ゼッケンの有無など)',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   PRIMARY KEY (spec_id),
   CONSTRAINT fk_build_specs_vehicle FOREIGN KEY (vehicle_id) REFERENCES T_vehicles (vehicle_id)

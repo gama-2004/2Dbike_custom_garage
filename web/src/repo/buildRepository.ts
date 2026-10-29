@@ -1,7 +1,8 @@
+import { api } from '../api/client';
 import type { Spec, VehicleId } from '../catalog/types';
 import { loadJSON, storeJSON } from '../logic/storage';
 
-/** 保存仕様(SavedBuild)。プロトタイプと同じ形式なので、前に保存したものも呼び出せる。 */
+/** 保存仕様(SavedBuild)。ブラウザ保存はプロトタイプと同じ形式なので、前に保存したものも呼び出せる。 */
 export interface SavedBuild {
   n: number;
   base: VehicleId;
@@ -10,7 +11,7 @@ export interface SavedBuild {
   state: Spec;
 }
 
-/** 保存管理(BuildRepository)。いまはブラウザ内に保存する。サーバー版は同じ形で API を呼ぶ実装に差し替える。 */
+/** 保存管理(BuildRepository)。サーバーにつながるときはサーバー、つながらないときはブラウザに保存する */
 export interface BuildRepository {
   list(): Promise<SavedBuild[]>;
   /** name を省略すると「ビルド #番号」 */
@@ -45,6 +46,31 @@ export function localBuildRepository(now: () => Date = () => new Date()): BuildR
       const next = read().filter((x) => x.n !== n);
       storeJSON(KEY_SAVES, next);
       return next;
+    },
+  };
+}
+
+const md = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`;
+};
+
+/** サーバー(MySQL)に保存する。持ち主は利用者キーで区別する */
+export function apiBuildRepository(styleOf: (base: VehicleId, spec: Spec) => string): BuildRepository {
+  const list = async () => (await api.builds.list()).map((b): SavedBuild => ({ n: b.id, base: b.vehicle_code, name: b.name, date: md(b.saved_at), state: b.spec }));
+  return {
+    list,
+    async save(base, spec, name) {
+      await api.builds.create({ vehicle_code: base, name: name?.trim() ?? '', style_name: styleOf(base, spec), spec });
+      return list();
+    },
+    async rename(n, name) {
+      if (name.trim()) await api.builds.rename(n, name.trim());
+      return list();
+    },
+    async remove(n) {
+      await api.builds.remove(n);
+      return list();
     },
   };
 }

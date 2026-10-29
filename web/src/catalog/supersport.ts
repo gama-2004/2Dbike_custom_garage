@@ -8,7 +8,7 @@ const PAINT: Option[] = [
 ];
 
 export const supersport: Vehicle = {
-  id: 'ss',
+  id: 'V001',
   label: 'スーパースポーツ',
   wheelbase: '1,370',
   lowerMax: 20,

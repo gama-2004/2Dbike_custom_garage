@@ -1,9 +1,11 @@
 import { expect, test } from 'vitest';
-import { VEHICLES, VEHICLE_IDS } from '../catalog';
+import { BUILTIN_VEHICLES as VEHICLES } from '../catalog';
+
+const VEHICLE_IDS = Object.keys(VEHICLES);
 import { diffSpecs } from './diff';
 import { partLines, totalPrice, yen } from './price';
 
-const ss = VEHICLES.ss;
+const ss = VEHICLES.V001;
 
 test('標準のままなら合計は0円', () => {
   expect(totalPrice(ss, ss.defaults)).toBe(0);

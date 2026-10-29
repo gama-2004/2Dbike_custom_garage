@@ -10,7 +10,7 @@ const PAINT: Option[] = [
 const partSec = (key: string, title: string): ShelfSection => ({ id: `sec-${key}`, title, items: [{ kind: 'part', key }] });
 
 export const american: Vehicle = {
-  id: 'us',
+  id: 'V002',
   label: 'アメリカン',
   wheelbase: '1,610',
   lowerMax: 20,
