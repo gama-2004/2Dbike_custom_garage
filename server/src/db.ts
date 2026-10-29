@@ -38,3 +38,15 @@ export async function tx<T>(db: Pool, fn: (c: PoolConnection) => Promise<T>): Pr
     c.release();
   }
 }
+
+/** つながらないときの、よくある原因の説明(なければ空文字) */
+export function connectionHint(e: Error & { code?: string }): string {
+  const where = `${config.db.host}:${config.db.port}`;
+  if (/auth_gssapi_client|unix_socket|ed25519/.test(e.message))
+    return `${where} で動いているのは MySQL ではなく MariaDB(XAMPP など)です。MySQL 8.4 の番号(ポート)を .env の DB_PORT に書いてください。`;
+  if (e.code === 'ECONNREFUSED')
+    return `${where} で MySQL が動いていません。MySQL のサービスが起動しているか、.env の DB_PORT が合っているか確かめてください。`;
+  if (e.code === 'ER_ACCESS_DENIED_ERROR')
+    return `.env の DB_USER か DB_PASSWORD が違います。MySQL Configurator で決めた root のパスワードを書いてください。`;
+  return '';
+}

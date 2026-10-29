@@ -51,6 +51,7 @@ Node.js＋Express＋MySQL のサーバー。車両・パーツのカタログと
    npm install
    npm run db:init
    ```
+   「unknown plugin auth_gssapi_client」と出たら、3306番では MySQL ではなく MariaDB(XAMPP など)が動いている。MySQL 8.4 を別の番号(3307 など)で動かし、`.env` の `DB_PORT` をその番号にする。このアプリは MySQL 8.4 の書き方を使うので、MariaDB では動かない。
 
 **毎回の起動(開発)** コマンドプロンプトを2つ開く。
 

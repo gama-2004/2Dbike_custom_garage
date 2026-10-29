@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { builtinCatalog } from '../../../web/src/catalog/fromCatalog';
 import { saveCatalog } from '../catalogRepo';
 import { config } from '../config';
-import { createPool, exec, tx } from '../db';
+import { connectionHint, createPool, exec, tx } from '../db';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA = path.resolve(here, '../../../docs/sql/schema.sql');
@@ -59,6 +59,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     })
     .catch((e: Error) => {
       console.error(`作れませんでした: ${e.message}`);
+      const hint = connectionHint(e);
+      if (hint) console.error(hint);
       process.exitCode = 1;
     });
 }
