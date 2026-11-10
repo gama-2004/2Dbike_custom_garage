@@ -344,21 +344,56 @@ function PartAdd({ onDone }: { onDone: () => Promise<void> }) {
   );
 }
 
+type Tab = 'vehicle' | 'part';
+
+/** 管理者用のヘッダー。利用者画面へのメニューは置かず、利用者画面は別のタブで開く */
+function AdminHeader({ admin, tab, onTab, onLogout }: { admin?: Admin | null; tab?: Tab; onTab?: (t: Tab) => void; onLogout?: () => void }) {
+  return (
+    <header className="app-header admin-header">
+      <span className="logo">
+        Bike Customizer<small>2Dカスタムガレージ</small>
+      </span>
+      <span className="admin-badge">管理画面</span>
+      {admin && tab && onTab && (
+        <nav aria-label="管理メニュー" role="tablist">
+          <button type="button" role="tab" aria-selected={tab === 'vehicle'} onClick={() => onTab('vehicle')}>ベース車両追加</button>
+          <button type="button" role="tab" aria-selected={tab === 'part'} onClick={() => onTab('part')}>パーツ追加</button>
+        </nav>
+      )}
+      <div className="admin-tools">
+        <a className="admin-link" href="./#top" target="_blank" rel="noopener">利用者画面を開く ↗</a>
+        {admin && (
+          <>
+            <span className="admin-user">{admin.name}({admin.login_id})</span>
+            <button type="button" className="btn" onClick={onLogout}>ログアウト</button>
+          </>
+        )}
+      </div>
+    </header>
+  );
+}
+
 /** 管理画面(/admin): ログイン(SCR-05)、ベース車両追加(SCR-06)、パーツ追加(SCR-07) */
 export function AdminPage() {
   const source = useCatalog((c) => c.source);
   const reload = useCatalog((c) => c.load);
   const [admin, setAdmin] = useState<Admin | null | undefined>(undefined);
-  const [tab, setTab] = useState<'vehicle' | 'part'>('vehicle');
+  const [tab, setTab] = useState<Tab>('vehicle');
 
   useEffect(() => {
     if (source !== 'api') return;
     api.admin.me().then(setAdmin, () => setAdmin(null));
   }, [source]);
 
-  if (source === 'loading') return <div className="page"><p className="empty">サーバーに接続しています…</p></div>;
-  if (source === 'builtin') {
-    return (
+  const logout = async () => {
+    await api.admin.logout().catch(() => undefined);
+    setAdmin(null);
+  };
+
+  let body;
+  if (source === 'loading') body = <div className="page"><p className="empty">サーバーに接続しています…</p></div>;
+  else if (source === 'builtin') {
+    body = (
       <div className="page">
         <section className="panel empty-box">
           <h1 className="page-title">管理画面</h1>
@@ -368,28 +403,20 @@ export function AdminPage() {
         </section>
       </div>
     );
-  }
-  if (admin === undefined) return <div className="page"><p className="empty">確認しています…</p></div>;
-  if (admin === null) return <div className="page"><Login onLogin={setAdmin} /></div>;
-
-  const logout = async () => {
-    await api.admin.logout().catch(() => undefined);
-    setAdmin(null);
-  };
-  return (
-    <div className="page wide">
-      <div className="page-head">
-        <h1 className="page-title">管理画面</h1>
-        <div className="head-actions">
-          <div className="seg" role="tablist" aria-label="管理メニュー">
-            <button type="button" role="tab" aria-selected={tab === 'vehicle'} aria-pressed={tab === 'vehicle'} onClick={() => setTab('vehicle')}>ベース車両追加</button>
-            <button type="button" role="tab" aria-selected={tab === 'part'} aria-pressed={tab === 'part'} onClick={() => setTab('part')}>パーツ追加</button>
-          </div>
-          <span className="note">{admin.name}({admin.login_id})</span>
-          <button type="button" className="btn" onClick={() => void logout()}>ログアウト</button>
-        </div>
+  } else if (admin === undefined) body = <div className="page"><p className="empty">確認しています…</p></div>;
+  else if (admin === null) body = <div className="page"><Login onLogin={setAdmin} /></div>;
+  else {
+    body = (
+      <div className="page wide">
+        <h1 className="page-title">{tab === 'vehicle' ? 'ベース車両追加' : 'パーツ追加'}</h1>
+        {tab === 'vehicle' ? <VehicleAdd onDone={reload} /> : <PartAdd onDone={reload} />}
       </div>
-      {tab === 'vehicle' ? <VehicleAdd onDone={reload} /> : <PartAdd onDone={reload} />}
-    </div>
+    );
+  }
+  return (
+    <>
+      <AdminHeader admin={admin} tab={tab} onTab={setTab} onLogout={() => void logout()} />
+      <main className="app-main">{body}</main>
+    </>
   );
 }
