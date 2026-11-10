@@ -19,6 +19,8 @@ export function App() {
     void load();
   }, [refresh, load]);
 
+  // 管理画面は利用者画面のヘッダーを出さず、管理者用のヘッダーを自分で持つ
+  if (route === 'admin') return <AdminPage />;
   return (
     <>
       <Header />
@@ -28,7 +30,6 @@ export function App() {
         {route === 'custom' && <CustomizePage />}
         {route === 'compare' && <ComparePage />}
         {route === 'mypage' && <MyPage />}
-        {route === 'admin' && <AdminPage />}
       </main>
     </>
   );
