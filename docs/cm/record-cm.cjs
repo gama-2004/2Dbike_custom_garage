@@ -1,6 +1,7 @@
 // 2Dカスタムガレージ 紹介CM(約37秒、音なし)を録画する。
 // 使い方: web で npm run build → npx vite preview --port 4173 を動かしたまま、node docs/cm/record-cm.cjs <出力フォルダ>
 // できた .webm を ffmpeg で mp4 にする(docs/cm/README.md)
+const { chromium } = require('playwright');
 const path = require('path');
 const OUT = process.argv[2];
 const APP = 'http://localhost:4173/';
