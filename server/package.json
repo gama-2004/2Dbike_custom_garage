@@ -9,6 +9,7 @@
     "db:init": "tsx --env-file-if-exists=.env src/scripts/init-db.ts",
     "db:reset": "tsx --env-file-if-exists=.env src/scripts/init-db.ts --reset",
     "admin:add": "tsx --env-file-if-exists=.env src/scripts/add-admin.ts",
+    "package": "tsx src/scripts/package.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -24,6 +25,7 @@
     "@types/express-session": "1.19.0",
     "@types/node": "22.19.1",
     "@types/supertest": "6.0.3",
+    "esbuild": "0.28.2",
     "supertest": "7.3.1",
     "typescript": "5.9.3",
     "vitest": "4.1.12"
