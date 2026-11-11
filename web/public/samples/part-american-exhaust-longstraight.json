@@ -1,0 +1,12 @@
+{
+  "slot": {
+    "code": "exhaust"
+  },
+  "part": {
+    "code": "longstraight",
+    "name": "ロングストレート(クローム)",
+    "weight_diff_kg": 1.5,
+    "price_yen": 98000,
+    "svg": "<path d=\"M366 262 C344 274 342 306 310 315 L120 317\" fill=\"none\" stroke=\"#5c6168\" stroke-width=\"13\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M366 262 C344 274 342 306 310 315 L120 317\" fill=\"none\" stroke=\"#b8bec6\" stroke-width=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M366 262 C344 274 342 306 310 315 L120 317\" fill=\"none\" stroke=\"#eef1f4\" stroke-width=\"2.2\" stroke-linecap=\"round\" transform=\"translate(0 -2.8)\" opacity=\".9\"/><path d=\"M484 262 C512 290 508 338 468 345 L114 330\" fill=\"none\" stroke=\"#5c6168\" stroke-width=\"13\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M484 262 C512 290 508 338 468 345 L114 330\" fill=\"none\" stroke=\"#b8bec6\" stroke-width=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M484 262 C512 290 508 338 468 345 L114 330\" fill=\"none\" stroke=\"#eef1f4\" stroke-width=\"2.2\" stroke-linecap=\"round\" transform=\"translate(0 -2.8)\" opacity=\".9\"/><g transform=\"rotate(2.43 86 329)\"><rect x=\"86\" y=\"321.5\" width=\"30\" height=\"15\" rx=\"2\" fill=\"#b8bec6\" stroke=\"#5c6168\" stroke-width=\"1.5\"/><rect x=\"88\" y=\"323.5\" width=\"26\" height=\"2.4\" rx=\"1\" fill=\"#eef1f4\"/><line x1=\"116\" y1=\"321.5\" x2=\"116\" y2=\"336.5\" stroke=\"#5c6168\" stroke-width=\"1.5\"/><ellipse cx=\"86\" cy=\"329\" rx=\"3\" ry=\"6.0\" fill=\"#2a2c30\" stroke=\"#5c6168\" stroke-width=\"1\"/></g><g transform=\"rotate(-0.60 92 317)\"><rect x=\"92\" y=\"309.5\" width=\"30\" height=\"15\" rx=\"2\" fill=\"#b8bec6\" stroke=\"#5c6168\" stroke-width=\"1.5\"/><rect x=\"94\" y=\"311.5\" width=\"26\" height=\"2.4\" rx=\"1\" fill=\"#eef1f4\"/><line x1=\"122\" y1=\"309.5\" x2=\"122\" y2=\"324.5\" stroke=\"#5c6168\" stroke-width=\"1.5\"/><ellipse cx=\"92\" cy=\"317\" rx=\"3\" ry=\"6.0\" fill=\"#2a2c30\" stroke=\"#5c6168\" stroke-width=\"1\"/></g>"
+  }
+}

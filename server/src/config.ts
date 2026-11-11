@@ -1,6 +1,8 @@
 /** 環境変数(.env)から設定を読む */
 export const config = {
   port: Number(process.env.PORT ?? 3000),
+  /** 受け付けるアドレス。空(既定)ならすべて(同じネットワークのほかの PC からも開ける)、127.0.0.1 ならこの PC だけ */
+  host: process.env.HOST || undefined,
   db: {
     host: process.env.DB_HOST ?? '127.0.0.1',
     port: Number(process.env.DB_PORT ?? 3306),

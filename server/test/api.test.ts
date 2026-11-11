@@ -12,7 +12,7 @@ import { totalPrice } from '../../web/src/logic/price';
 import { createApp } from '../src/app';
 import { config } from '../src/config';
 import { createPool, exec, type Db } from '../src/db';
-import { initDatabase } from '../src/scripts/init-db';
+import { initDatabase } from '../src/initDb';
 
 const DB = `${config.db.database}_test`;
 const sample = <T,>(name: string) => JSON.parse(readFileSync(new URL(`../../web/public/samples/${name}`, import.meta.url), 'utf8')) as T;
