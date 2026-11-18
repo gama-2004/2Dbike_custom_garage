@@ -16,7 +16,7 @@
 | `web/` | 画面(React 19 + TypeScript + Vite + Zustand)。`npm run dev` で http://localhost:5173/ |
 | `server/` | API サーバー(Express 5 + mysql2)。`npm run dev` で http://localhost:3000/ 。Vite は `/api` をここへ中継する |
 | `docs/` | ガントチャート、基本設計書(docx)、`sql/schema.sql`、紹介CM |
-| `uml/` | ユースケース記述(`usecases.md`)、クラス図・シーケンス図(svg / png) |
+| `uml/` | ユースケース記述(`usecases.md`)、クラス図・ロバストネス図・シーケンス図(svg / png) |
 | `app/index.html` | 最初のプロトタイプ(1ファイル版)。どこからも使っていない |
 
 - 車両・パーツの定義(JSON)は画面とサーバーで共通: `web/src/catalog/definition.ts`。サーバーは `../../web/src/...` を直接 import する。
